@@ -1,11 +1,11 @@
 # 💱 P2P Exchange Calculator
 
-> **Live Demo:** [https://sarakmacbook.github.io/p2p_exchange_calculator](https://sarakmacbook.github.io/p2p_exchange_calculator)  
-> **GitHub:** [https://github.com/sarakmacbook/p2p_exchange_calculator](https://github.com/sarakmacbook/p2p_exchange_calculator)
+> **Live Demo:** [https://sarakmacbook.github.io/calculator_Exchange_V2/](https://sarakmacbook.github.io/calculator_Exchange_V2/)  
+> **GitHub:** [https://github.com/sarakmacbook/calculator_Exchange_V2](https://github.com/sarakmacbook/calculator_Exchange_V2)
 
 A sleek, dark-themed **P2P exchange calculator** for converting **US Dollar (USD)** and **Iraqi Dinar (IQD)** to **USDT**. Built as a single static file — zero dependencies, blazing fast, and fully responsive across **all devices**.
 
-![Dark Theme](https://img.shields.io/badge/theme-dark-black?style=flat-square) ![PWA Ready](https://img.shields.io/badge/PWA-ready-c5f000?style=flat-square) ![Zero Dependencies](https://img.shields.io/badge/deps-zero-success?style=flat-square) ![Responsive](https://img.shields.io/badge/responsive-all_devices-blue?style=flat-square)
+![Dark Theme](https://img.shields.io/badge/theme-dark-black?style=flat-square) ![PWA Ready](https://img.shields.io/badge/PWA-ready-c5f000?style=flat-square) ![Zero Dependencies](https://img.shields.io/badge/deps-zero-success?style=flat-square) ![Responsive](https://img.shields.io/badge/responsive-all_devices-blue?style=flat-square) ![Made by AI](https://img.shields.io/badge/made_by_AI-Kimi_2.6-c5f000?style=flat-square)
 
 ---
 
@@ -16,8 +16,8 @@ A sleek, dark-themed **P2P exchange calculator** for converting **US Dollar (USD
 | **🔄 Dual Currency** | Switch between **USD** and **IQD** instantly |
 | **⚡ Real-time** | Result updates as you type — no submit button |
 | **📊 Scale Table** | See preset conversions at your current rate |
-| **📋 Tap to Copy** | One tap copies the result (works on all devices) |
-| **📸 Screenshot (profit hidden)** | Tap to copy/share a full screenshot image with all profit results hidden |
+| **📋 Tap to Copy** | One tap on the result copies the number (works on all devices) |
+| **📸 Hold to Screenshot (profit hidden)** | Long-press the result to capture a screenshot with all profit results hidden (also available as a button) |
 | **💾 Persistent** | Remembers your last rate & amount (localStorage) |
 | **🎯 Quick Chips** | Tap 500 / 1K / 1.5K / 2K (USD) or 500K / 1M / 1.5M / 2M (IQD) |
 | **📱 PWA Ready** | Add to home screen on iOS & Android |
@@ -46,14 +46,14 @@ Works perfectly on **every screen size**:
 ### One-Command VPS Install
 
 ```bash
-curl -sL https://raw.githubusercontent.com/sarakmacbook/p2p_exchange_calculator/main/install.sh | sudo bash
+curl -sL https://raw.githubusercontent.com/sarakmacbook/calculator_Exchange_V2/main/install.sh | sudo bash
 ```
 
 ### Clone & Install
 
 ```bash
-git clone https://github.com/sarakmacbook/p2p_exchange_calculator.git
-cd p2p_exchange_calculator
+git clone https://github.com/sarakmacbook/calculator_Exchange_V2.git
+cd calculator_Exchange_V2
 sudo bash install.sh
 ```
 
@@ -106,11 +106,14 @@ Just upload `index.html` — it works on **any** static host:
 
 | Platform | Method |
 |----------|--------|
-| **GitHub Pages** | Enable Pages → `main` branch → root |
+| **GitHub Pages** | Enable Pages → `GitHub Actions` source → deploy on push (auto via `.github/workflows/pages.yml`) |
 | **Cloudflare Pages** | Drag & drop |
 | **Vercel / Netlify** | Connect repo or drag & drop |
 | **Nginx / Apache** | Copy to web root |
 | **S3 / GCS / R2** | Upload file |
+
+> **GitHub Pages note:** The repo ships a ready-to-use workflow (`.github/workflows/pages.yml`) that builds and publishes the static site automatically on every push to `main`. To activate it, go to **Settings → Pages**, set **Source** to **GitHub Actions**, and push a commit. The live demo then appears at:
+> `https://sarakmacbook.github.io/calculator_Exchange_V2/`
 
 ---
 
@@ -200,7 +203,7 @@ Tap **reset** to restore defaults.
 ## 📂 File Structure
 
 ```
-p2p_exchange_calculator/
+calculator_Exchange_V2/
 ├── index.html          # The entire app (responsive, PWA-ready)
 ├── install.sh          # Interactive VPS installer
 ├── README.md           # This file
@@ -220,3 +223,7 @@ Pull requests welcome! This is a single-file app — keep it simple.
 ## 📄 License
 
 **MIT** — free to use, modify, and distribute.
+
+---
+
+**Made by AI · Kimi 2.6** 🤖
