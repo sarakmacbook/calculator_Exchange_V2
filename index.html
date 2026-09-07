@@ -206,7 +206,18 @@
     flex-shrink:0;
   }
 
-  .result-wrap { text-align:center; margin-top:16px; position:relative; -webkit-user-select:none; user-select:none; }
+  .result-wrap { text-align:center; margin-top:16px; position:relative; -webkit-user-select:none; user-select:none; -webkit-touch-callout:none; touch-action:pan-y; }
+  .result-wrap.screenshot-ready { cursor:pointer; }
+  .result-wrap::after {
+    content:""; position:absolute; bottom:-6px; left:25%; width:50%; height:3px;
+    background:#c5f000; border-radius:3px; transform:scaleX(0); transform-origin:left;
+    pointer-events:none;
+  }
+  .result-wrap.is-holding::after { animation:screenshotHold 650ms linear forwards; }
+  @keyframes screenshotHold { to { transform:scaleX(1); } }
+  @media (prefers-reduced-motion: reduce) {
+    .result-wrap.is-holding::after { animation:none; transform:scaleX(1); }
+  }
   .result-wrap .result, .result-wrap .result-sub, .result-wrap .result-label { transition: transform 0.2s; }
   .result-label { font-size:13px; color:#c5f000; font-weight:600; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px; }
   .result { font-size:42px; font-weight:700; line-height:1; letter-spacing:-1px; font-variant-numeric:tabular-nums; }
@@ -416,6 +427,46 @@
     z-index:99;
   }
   .toast.show { opacity:1; }
+
+  /* Result-only screenshot: no profit data is captured. */
+  .screenshot-actions { display:flex; flex-direction:column; align-items:center; gap:4px; margin-top:12px; }
+  .screenshot-btn {
+    display:inline-flex; align-items:center; justify-content:center; gap:6px;
+    min-height:44px; padding:8px 14px; border:1px solid #2a2a2a; border-radius:12px;
+    background:#181818; color:#c5f000; font-size:12px; font-weight:600; font-family:inherit; cursor:pointer;
+  }
+  .screenshot-btn svg { width:16px; height:16px; fill:currentColor; }
+  .screenshot-btn:hover:not(:disabled) { border-color:#c5f000; }
+  .screenshot-btn:disabled { opacity:.4; cursor:not-allowed; }
+  .screenshot-hint { color:#909090; font-size:11px; text-align:center; }
+  .screenshot-dialog {
+    position:fixed; margin:auto; width:calc(100% - 32px); max-width:460px;
+    max-height:calc(100vh - 32px); max-height:calc(100dvh - 32px); overflow-y:auto;
+    padding:20px; border:1px solid #2a2a2a; border-radius:20px; background:#0f0f0f; color:#fff;
+  }
+  .screenshot-dialog::backdrop { background:rgba(0,0,0,.8); }
+  .screenshot-header { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+  .screenshot-header h2 { font-size:18px; font-weight:600; }
+  .screenshot-close {
+    width:44px; height:44px; flex-shrink:0; border:0; border-radius:12px;
+    background:#181818; color:#909090; font-size:26px; cursor:pointer;
+  }
+  .screenshot-note, .screenshot-status { color:#909090; font-size:12px; line-height:1.5; margin-top:8px; }
+  .screenshot-image {
+    display:block; width:100%; height:auto; margin-top:16px; border:1px solid #2a2a2a; border-radius:12px;
+    -webkit-touch-callout:default; -webkit-user-select:auto; user-select:auto;
+  }
+  .screenshot-save-actions { display:flex; gap:8px; margin-top:16px; }
+  .screenshot-save-actions a, .screenshot-save-actions button {
+    flex:1; display:flex; align-items:center; justify-content:center; min-height:44px;
+    padding:10px 14px; border:1px solid #2a2a2a; border-radius:12px;
+    background:#181818; color:#fff; font-size:14px; font-weight:600; font-family:inherit;
+    text-decoration:none; cursor:pointer;
+  }
+  .screenshot-save-actions .screenshot-save { background:#c5f000; border-color:#c5f000; color:#000; }
+  .screenshot-save-actions button:disabled { opacity:.5; cursor:wait; }
+  .screenshot-dialog [hidden] { display:none; }
+  .screenshot-btn:focus-visible, .screenshot-dialog :focus-visible { outline:2px solid #c5f000; outline-offset:3px; }
 
   /* === FIND RATE PANEL === */
   .find-rate-toggle {
@@ -754,10 +805,17 @@
       <div class="pr-close" id="prClose">Close</div>
     </div>
 
-    <div class="result-wrap" id="resulttap">
+    <div class="result-wrap" id="resulttap" title="Hold to screenshot the result without profit" aria-describedby="screenshotHint">
       <div class="result-label" id="resultlabel">Receive</div>
       <div class="result"><span id="out">0.00</span><span class="unit" id="outunit">USDT</span></div>
       <div class="result-sub" id="outsub">enter price &amp; amount</div>
+    </div>
+    <div class="screenshot-actions">
+      <button class="screenshot-btn" id="screenshotBtn" type="button" aria-haspopup="dialog" aria-controls="screenshotDialog" aria-describedby="screenshotHint" disabled>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3 7 5H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3l-2-2H9zm3 5a5 5 0 1 1 0 10 5 5 0 0 1 0-10zm0 2a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"/></svg>
+        Screenshot
+      </button>
+      <div class="screenshot-hint" id="screenshotHint">Or hold the result · Profit excluded</div>
     </div>
     <div class="fields">
       <div class="field">
@@ -809,7 +867,21 @@
   
     </div><!-- /side-panel --></div>
 
-<div class="toast" id="toast"></div>
+<dialog class="screenshot-dialog" id="screenshotDialog" aria-labelledby="screenshotTitle" aria-describedby="screenshotPrivacy">
+  <div class="screenshot-header">
+    <h2 id="screenshotTitle">Result screenshot</h2>
+    <button class="screenshot-close" id="screenshotClose" type="button" aria-label="Close screenshot" autofocus>×</button>
+  </div>
+  <p class="screenshot-note" id="screenshotPrivacy">Only the conversion is included. Profit and percentage results stay private.</p>
+  <img class="screenshot-image" id="screenshotImage" alt="Conversion result screenshot">
+  <div class="screenshot-save-actions">
+    <a class="screenshot-save" id="screenshotDownload" download target="_self">Save PNG</a>
+    <button id="screenshotShare" type="button" hidden>Share</button>
+  </div>
+  <p class="screenshot-status" id="screenshotStatus" role="status">On mobile, you can also hold the image to save it.</p>
+</dialog>
+
+<div class="toast" id="toast" role="status"></div>
 
 <script>
 const DEFAULT_RATES = { usd: 1, iqd: 14 };
@@ -954,6 +1026,7 @@ function updateUI() {
 }
 
 function render() {
+  cancelScreenshotHold();
   const r = num(rateEl.value), a = num(amtEl.value);
   const out = document.getElementById("out"), sub = document.getElementById("outsub");
   const cfg = CURRENCY_CONFIG[currentCurrency];
@@ -1011,6 +1084,7 @@ function render() {
       profitRow.style.display = "none";
     }
   }
+  updateScreenshotAvailability();
 }
 
 function switchCurrency(curr) {
@@ -1118,6 +1192,202 @@ function toast(msg) {
   t.classList.add("show");
   setTimeout(() => t.classList.remove("show"), 1200);
 }
+
+// ===== RESULT SCREENSHOT (CONVERSION DATA ONLY) =====
+const resultTap = document.getElementById("resulttap");
+const screenshotBtn = document.getElementById("screenshotBtn");
+const screenshotDialog = document.getElementById("screenshotDialog");
+const screenshotImage = document.getElementById("screenshotImage");
+const screenshotDownload = document.getElementById("screenshotDownload");
+const screenshotShare = document.getElementById("screenshotShare");
+const screenshotStatus = document.getElementById("screenshotStatus");
+const SCREENSHOT_HOLD_MS = 650;
+let screenshotHold = null;
+let screenshotBusy = false;
+let screenshotUrl = null;
+let screenshotFile = null;
+
+function hasScreenshotResult() {
+  const rate = num(rateEl.value), amount = num(amtEl.value);
+  const result = MODE_CONFIG[currentMode].calc(rate, amount);
+  return rate > 0 && amount > 0 && Number.isFinite(result) && result > 0;
+}
+
+function updateScreenshotAvailability() {
+  const valid = hasScreenshotResult();
+  screenshotBtn.disabled = !valid;
+  screenshotBtn.setAttribute("aria-busy", String(screenshotBusy));
+  screenshotBtn.title = valid ? "Screenshot without profit" : "Enter a valid unit price and amount first";
+  resultTap.classList.toggle("screenshot-ready", valid);
+}
+
+function cancelScreenshotHold() {
+  if (screenshotHold) clearTimeout(screenshotHold.timer);
+  screenshotHold = null;
+  resultTap.classList.remove("is-holding");
+}
+
+function getScreenshotData() {
+  if (!hasScreenshotResult()) return null;
+  const currency = CURRENCY_CONFIG[currentCurrency].amtLabel;
+  const formatInput = value => num(value).toLocaleString("en-US", { maximumSignificantDigits: 21 });
+  // Explicit allowlist: never clone the page or read profit/percentage panels.
+  return {
+    label: document.getElementById("resultlabel").textContent,
+    result: document.getElementById("out").textContent,
+    unit: document.getElementById("outunit").textContent,
+    formula: document.getElementById("outsub").textContent,
+    pair: currentMode === "send" ? currency + " → USDT" : "USDT → " + currency,
+    rate: formatInput(rateEl.value) + " " + currency + "/USDT",
+    amountLabel: currentMode === "send" ? "Amount sent" : "Amount to receive",
+    amount: formatInput(amtEl.value) + " " + (currentMode === "send" ? currency : "USDT"),
+    filename: "exchange-result-" + currentCurrency + "-" + currentMode + ".png"
+  };
+}
+
+function createScreenshotBlob(data) {
+  // Native canvas keeps this single-file app offline-ready and dependency-free.
+  const canvas = document.createElement("canvas");
+  canvas.width = 1200;
+  canvas.height = 840;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("Canvas is unavailable");
+  ctx.scale(2, 2);
+  ctx.fillStyle = "#000000";
+  ctx.fillRect(0, 0, 600, 420);
+
+  function text(value, x, y, size, color, align = "left", maxWidth = 536, weight = 400) {
+    ctx.fillStyle = color;
+    ctx.textAlign = align;
+    const font = () => `${weight} ${size}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif`;
+    ctx.font = font();
+    while (ctx.measureText(value).width > maxWidth && size > 12) {
+      size -= 1;
+      ctx.font = font();
+    }
+    ctx.fillText(value, x, y, maxWidth);
+  }
+
+  ctx.fillStyle = "#c5f000";
+  ctx.fillRect(32, 28, 28, 3);
+  text("EXCHANGE CALCULATOR", 32, 62, 15, "#909090", "left", 310, 600);
+  text(data.pair, 568, 62, 13, "#c5f000", "right", 190, 600);
+  text(data.label.toUpperCase(), 300, 117, 14, "#c5f000", "center", 536, 600);
+  text(data.result, 300, 177, 54, "#ffffff", "center", 536, 700);
+  text(data.unit, 300, 213, 20, "#909090", "center", 536, 600);
+  text(data.formula, 300, 252, 14, "#909090", "center");
+
+  ctx.fillStyle = "#181818";
+  ctx.beginPath();
+  if (ctx.roundRect) ctx.roundRect(32, 282, 536, 110, 14);
+  else ctx.rect(32, 282, 536, 110);
+  ctx.fill();
+  text("Unit price", 48, 320, 13, "#909090");
+  text(data.rate, 552, 320, 16, "#ffffff", "right", 320, 600);
+  text(data.amountLabel, 48, 362, 13, "#909090");
+  text(data.amount, 552, 362, 16, "#ffffff", "right", 320, 600);
+
+  return new Promise((resolve, reject) => {
+    canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error("PNG export failed")), "image/png");
+  });
+}
+
+function clearScreenshot() {
+  const oldUrl = screenshotUrl;
+  screenshotUrl = null;
+  screenshotFile = null;
+  screenshotImage.removeAttribute("src");
+  screenshotDownload.removeAttribute("href");
+  screenshotShare.hidden = true;
+  // Let an in-flight download finish before releasing its image URL.
+  if (oldUrl) setTimeout(() => URL.revokeObjectURL(oldUrl), 1000);
+}
+
+async function openScreenshot() {
+  cancelScreenshotHold();
+  if (screenshotBusy || screenshotDialog.open) return;
+  const data = getScreenshotData();
+  if (!data) {
+    toast("Enter a valid price and amount first");
+    return;
+  }
+  screenshotBusy = true;
+  updateScreenshotAvailability();
+  try {
+    const blob = await createScreenshotBlob(data);
+    screenshotUrl = URL.createObjectURL(blob);
+    screenshotImage.src = screenshotUrl;
+    screenshotImage.alt = `${data.label} ${data.result} ${data.unit}. ${data.formula}. Unit price: ${data.rate}. ${data.amountLabel}: ${data.amount}.`;
+    screenshotDownload.href = screenshotUrl;
+    screenshotDownload.download = data.filename;
+    screenshotStatus.textContent = "On mobile, you can also hold the image to save it.";
+    screenshotShare.hidden = true;
+    screenshotShare.disabled = false;
+    // File sharing is optional; Save PNG remains available on every browser.
+    try {
+      screenshotFile = new File([blob], data.filename, { type: "image/png" });
+      screenshotShare.hidden = !(navigator.share && navigator.canShare && navigator.canShare({ files: [screenshotFile] }));
+    } catch {
+      screenshotFile = null;
+    }
+    screenshotDialog.showModal();
+  } catch {
+    clearScreenshot();
+    toast("Could not create screenshot. Please try again.");
+  } finally {
+    screenshotBusy = false;
+    updateScreenshotAvailability();
+  }
+}
+
+resultTap.addEventListener("pointerdown", event => {
+  if (!event.isPrimary || event.button !== 0 || screenshotBusy || screenshotDialog.open || !hasScreenshotResult()) return;
+  cancelScreenshotHold();
+  screenshotHold = {
+    pointerId: event.pointerId, x: event.clientX, y: event.clientY,
+    timer: setTimeout(openScreenshot, SCREENSHOT_HOLD_MS)
+  };
+  resultTap.classList.add("is-holding");
+});
+
+document.addEventListener("pointermove", event => {
+  if (!screenshotHold || event.pointerId !== screenshotHold.pointerId) return;
+  if (Math.hypot(event.clientX - screenshotHold.x, event.clientY - screenshotHold.y) > 10) cancelScreenshotHold();
+}, { passive: true });
+document.addEventListener("pointerdown", event => {
+  if (screenshotHold && event.pointerId !== screenshotHold.pointerId) cancelScreenshotHold();
+}, { capture: true, passive: true });
+["pointerup", "pointercancel"].forEach(type => document.addEventListener(type, cancelScreenshotHold));
+["pointerleave", "lostpointercapture"].forEach(type => resultTap.addEventListener(type, cancelScreenshotHold));
+resultTap.addEventListener("contextmenu", event => event.preventDefault());
+document.addEventListener("scroll", cancelScreenshotHold, { capture: true, passive: true });
+document.addEventListener("visibilitychange", cancelScreenshotHold);
+window.addEventListener("blur", cancelScreenshotHold);
+document.addEventListener("keydown", event => { if (event.key === "Escape") cancelScreenshotHold(); });
+screenshotBtn.addEventListener("click", openScreenshot);
+document.getElementById("screenshotClose").addEventListener("click", () => screenshotDialog.close());
+screenshotDialog.addEventListener("click", event => {
+  const rect = screenshotDialog.getBoundingClientRect();
+  if (event.target === screenshotDialog && (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom)) {
+    screenshotDialog.close();
+  }
+});
+screenshotDialog.addEventListener("close", () => {
+  clearScreenshot();
+  screenshotBtn.focus({ preventScroll: true });
+});
+screenshotShare.addEventListener("click", async () => {
+  if (!screenshotFile || screenshotShare.disabled) return;
+  screenshotShare.disabled = true;
+  try {
+    await navigator.share({ files: [screenshotFile], title: "Exchange result" });
+    screenshotStatus.textContent = "Screenshot shared.";
+  } catch (error) {
+    if (error.name !== "AbortError") screenshotStatus.textContent = "Could not share. Use Save PNG instead.";
+  } finally {
+    screenshotShare.disabled = false;
+  }
+});
 
 // ===== FIND RATE LOGIC =====
 function updateFindRate() {
