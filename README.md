@@ -1,7 +1,7 @@
 # 💱 P2P Exchange Calculator
 
-> **Live Demo:** [https://sarakmacbook.github.io/p2p_exchange_calculator](https://sarakmacbook.github.io/p2p_exchange_calculator)  
-> **GitHub:** [https://github.com/sarakmacbook/p2p_exchange_calculator](https://github.com/sarakmacbook/p2p_exchange_calculator)
+> **Live Demo:** [https://sarakmacbook.github.io/calculator_Exchange_V2/](https://sarakmacbook.github.io/calculator_Exchange_V2/)  
+> **GitHub:** [https://github.com/sarakmacbook/calculator_Exchange_V2](https://github.com/sarakmacbook/calculator_Exchange_V2)
 
 A sleek, dark-themed **P2P exchange calculator** for converting **US Dollar (USD)** and **Iraqi Dinar (IQD)** to **USDT**. Built as a single static file — zero dependencies, blazing fast, and fully responsive across **all devices**.
 
@@ -46,14 +46,14 @@ Works perfectly on **every screen size**:
 ### One-Command VPS Install
 
 ```bash
-curl -sL https://raw.githubusercontent.com/sarakmacbook/p2p_exchange_calculator/main/install.sh | sudo bash
+curl -sL https://raw.githubusercontent.com/sarakmacbook/calculator_Exchange_V2/main/install.sh | sudo bash
 ```
 
 ### Clone & Install
 
 ```bash
-git clone https://github.com/sarakmacbook/p2p_exchange_calculator.git
-cd p2p_exchange_calculator
+git clone https://github.com/sarakmacbook/calculator_Exchange_V2.git
+cd calculator_Exchange_V2
 sudo bash install.sh
 ```
 
@@ -106,11 +106,14 @@ Just upload `index.html` — it works on **any** static host:
 
 | Platform | Method |
 |----------|--------|
-| **GitHub Pages** | Enable Pages → `main` branch → root |
+| **GitHub Pages** | Enable Pages → `GitHub Actions` source → deploy on push (auto via `.github/workflows/pages.yml`) |
 | **Cloudflare Pages** | Drag & drop |
 | **Vercel / Netlify** | Connect repo or drag & drop |
 | **Nginx / Apache** | Copy to web root |
 | **S3 / GCS / R2** | Upload file |
+
+> **GitHub Pages note:** The repo ships a ready-to-use workflow (`.github/workflows/pages.yml`) that builds and publishes the static site automatically on every push to `main`. To activate it, go to **Settings → Pages**, set **Source** to **GitHub Actions**, and push a commit. The live demo then appears at:
+> `https://sarakmacbook.github.io/calculator_Exchange_V2/`
 
 ---
 
@@ -200,7 +203,7 @@ Tap **reset** to restore defaults.
 ## 📂 File Structure
 
 ```
-p2p_exchange_calculator/
+calculator_Exchange_V2/
 ├── index.html          # The entire app (responsive, PWA-ready)
 ├── install.sh          # Interactive VPS installer
 ├── README.md           # This file
