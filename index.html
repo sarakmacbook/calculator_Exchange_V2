@@ -796,12 +796,12 @@
       <div class="pr-close" id="prClose">Close</div>
     </div>
 
-    <div class="result-wrap" id="resulttap" role="button" tabindex="0" title="Hold to screenshot the result without profit" aria-haspopup="dialog" aria-controls="screenshotDialog" aria-describedby="screenshotHint">
+    <div class="result-wrap" id="resulttap" role="button" tabindex="0" title="Tap to copy · Hold to screenshot (profit excluded)" aria-haspopup="dialog" aria-controls="screenshotDialog" aria-describedby="screenshotHint">
       <div class="result-label" id="resultlabel">Receive</div>
       <div class="result"><span id="out">0.00</span><span class="unit" id="outunit">USDT</span></div>
       <div class="result-sub" id="outsub">enter price &amp; amount</div>
     </div>
-    <div class="screenshot-hint" id="screenshotHint">Hold the result · Profit excluded</div>
+    <div class="screenshot-hint" id="screenshotHint">Tap to copy · Hold to screenshot · Profit excluded</div>
     <div class="fields">
       <div class="field">
         <div class="flabel"><span>Unit price</span><span class="reset" id="resetrate">reset</span></div>
@@ -1200,7 +1200,7 @@ function hasScreenshotResult() {
 function updateScreenshotAvailability() {
   const valid = hasScreenshotResult();
   resultTap.setAttribute("aria-busy", String(screenshotBusy));
-  resultTap.title = valid ? "Hold to screenshot the result without profit" : "Enter a valid unit price and amount first";
+  resultTap.title = valid ? "Tap to copy · Hold to screenshot (profit excluded)" : "Enter a valid unit price and amount first";
   resultTap.classList.toggle("screenshot-ready", valid);
 }
 
@@ -1328,9 +1328,44 @@ resultTap.addEventListener("pointerdown", event => {
   cancelScreenshotHold();
   screenshotHold = {
     pointerId: event.pointerId, x: event.clientX, y: event.clientY,
+    startTime: Date.now(),
     timer: setTimeout(openScreenshot, SCREENSHOT_HOLD_MS)
   };
   resultTap.classList.add("is-holding");
+});
+
+// Quick tap copies the numeric result to the clipboard; a longer hold screenshots.
+function copyResult() {
+  const text = document.getElementById("out").textContent.replace(/,/g, "").trim();
+  if (!text) return;
+  const done = () => toast("Copied");
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(done).catch(() => fallbackCopy(text, done));
+  } else {
+    fallbackCopy(text, done);
+  }
+}
+
+function fallbackCopy(text, done) {
+  const textarea = document.createElement("textarea");
+  textarea.value = text;
+  textarea.setAttribute("readonly", "");
+  textarea.style.position = "fixed";
+  textarea.style.opacity = "0";
+  document.body.appendChild(textarea);
+  textarea.select();
+  try { document.execCommand("copy"); } catch {}
+  document.body.removeChild(textarea);
+  done();
+}
+
+resultTap.addEventListener("pointerup", event => {
+  // Only a primary tap whose hold never fired (screenshotHold still live), with no
+  // significant movement and no dialog open, counts as a tap-to-copy.
+  if (!screenshotHold || event.pointerId !== screenshotHold.pointerId || screenshotDialog.open) return;
+  const moved = Math.hypot(event.clientX - screenshotHold.x, event.clientY - screenshotHold.y) > 10;
+  const held = Date.now() - screenshotHold.startTime >= SCREENSHOT_HOLD_MS;
+  if (!moved && !held) copyResult();
 });
 
 document.addEventListener("pointermove", event => {

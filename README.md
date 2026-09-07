@@ -22,6 +22,7 @@ A sleek, dark-themed **P2P exchange calculator** for converting **US Dollar (USD
 | **🌙 Dark Mode** | Clean black theme with lime green accents |
 | **🖥️ Desktop Frame** | Phone-like centered layout on desktop |
 | **📸 Private Result Screenshot** | Hold the conversion result to save a PNG without any profit or percentage data |
+| **📋 Tap to Copy** | Quick-tap the result to copy the number to the clipboard |
 
 ### Save a result screenshot
 
@@ -30,6 +31,8 @@ A sleek, dark-themed **P2P exchange calculator** for converting **US Dollar (USD
 3. Preview the image and choose **Save PNG**, or **Share** on browsers that support image sharing. On mobile, you can also hold the preview image to save it.
 
 The image contains only the conversion result, formula, unit price, and amount. All profit and percentage panels are excluded, even when open; the calculator's values and panels are left unchanged. Short taps and scrolling do not capture an image. PNGs are generated locally using native canvas, with no upload, external library, or network connection required.
+
+**Tap to copy:** a quick tap (without holding) on the main result copies the numeric result to your clipboard, so you can paste it anywhere. Hold still opens the screenshot.
 
 ---
 

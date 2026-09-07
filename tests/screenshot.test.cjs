@@ -79,7 +79,7 @@ test('the standalone screenshot button is removed; the result itself is the only
   assert.equal(await page.locator('.screenshot-btn').count(), 0);
   assert.equal(await page.locator('#resulttap').getAttribute('role'), 'button');
   assert.equal(await page.locator('#resulttap').getAttribute('tabindex'), '0');
-  assert.equal(await page.locator('#screenshotHint').textContent(), 'Hold the result · Profit excluded');
+  assert.equal(await page.locator('#screenshotHint').textContent(), 'Tap to copy · Hold to screenshot · Profit excluded');
 });
 
 const conversions = [
@@ -300,4 +300,85 @@ test('PNG export failure gives feedback and can be retried', async t => {
   await page.evaluate(() => { HTMLCanvasElement.prototype.toBlob = window.originalToBlob; });
   await openScreenshot(page);
   assert.equal(await page.locator('#screenshotImage').evaluate(image => image.naturalWidth), 1200);
+});
+
+// ===== TAP TO COPY RESULT =====
+async function tapResult(page) {
+  await pointer(page, 'pointerdown');
+  await pointer(page, 'pointerup');
+}
+
+// Record clipboard writes deterministically, independent of OS/CI clipboard focus.
+async function recordClipboard(page) {
+  await page.evaluate(() => {
+    window.__copied = [];
+    const cp = navigator.clipboard;
+    if (cp && cp.writeText) {
+      const original = cp.writeText.bind(cp);
+      cp.writeText = text => { window.__copied.push(String(text)); return original(text); };
+    }
+  });
+}
+
+const copies = [
+  { currency: 'usd', mode: 'send', rate: '1.05', amount: '1000', copied: '952.38' },
+  { currency: 'usd', mode: 'receive', rate: '1.05', amount: '100', copied: '105.00' },
+  { currency: 'iqd', mode: 'send', rate: '1500', amount: '1500000', copied: '1000.00' },
+  { currency: 'iqd', mode: 'receive', rate: '1500', amount: '100', copied: '150000' }
+];
+
+for (const c of copies) {
+  test(`tapping the result copies the ${c.currency.toUpperCase()} ${c.mode} result number, not a screenshot`, async t => {
+    const page = await calculator(t);
+    await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
+    await recordClipboard(page);
+    if (c.currency !== 'usd') await page.click('[data-currency="iqd"]');
+    if (c.mode !== 'send') await page.click('[data-mode="receive"]');
+    await setValues(page, c.rate, c.amount);
+    await tapResult(page);
+    await page.waitForFunction(() => document.getElementById('toast').classList.contains('show'));
+    assert.equal(await page.locator('#toast').textContent(), 'Copied');
+    assert.deepEqual(await page.evaluate(() => window.__copied), [c.copied]);
+    assert.equal(await page.locator('#screenshotDialog').evaluate(el => el.open), false);
+    assert.deepEqual(await page.evaluate(() => window.drawnText), [], 'A tap must not draw a screenshot');
+  });
+}
+
+test('copy gives a toast and keeps the result area unchanged', async t => {
+  const page = await calculator(t);
+  await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
+  await recordClipboard(page);
+  await setValues(page, '1.05', '1000');
+  const before = await page.locator('#out').textContent();
+  await tapResult(page);
+  await page.waitForFunction(() => document.getElementById('toast').classList.contains('show'));
+  assert.equal(await page.locator('#out').textContent(), before);
+  assert.equal(await page.locator('#resulttap').evaluate(el => el.classList.contains('is-holding')), false);
+  assert.equal(await page.locator('#resulttap').getAttribute('aria-busy'), 'false');
+});
+
+test('dragging or scrolling the result does not copy or screenshot', async t => {
+  const page = await calculator(t);
+  await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
+  await recordClipboard(page);
+  await setValues(page, '1.05', '1000');
+  await pointer(page, 'pointerdown');
+  await pointer(page, 'pointermove', { clientY: 115 });
+  await pointer(page, 'pointerup');
+  await page.clock.runFor(1000);
+  assert.deepEqual(await page.evaluate(() => window.__copied), []);
+  assert.equal(await page.locator('#screenshotDialog').evaluate(el => el.open), false);
+});
+
+test('invalid, zero or missing results are not copied', async t => {
+  const page = await calculator(t);
+  await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
+  await recordClipboard(page);
+  for (const [rate, amount] of [['1', ''], ['0', '100'], ['-1', '100'], ['abc', '100'], ['1', '0']]) {
+    await setValues(page, rate, amount);
+    await tapResult(page);
+    await page.clock.runFor(700);
+  }
+  assert.deepEqual(await page.evaluate(() => window.__copied), []);
+  assert.equal(await page.locator('#screenshotDialog').evaluate(el => el.open), false);
 });
