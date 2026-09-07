@@ -21,6 +21,15 @@ A sleek, dark-themed **P2P exchange calculator** for converting **US Dollar (USD
 | **📱 PWA Ready** | Add to home screen on iOS & Android |
 | **🌙 Dark Mode** | Clean black theme with lime green accents |
 | **🖥️ Desktop Frame** | Phone-like centered layout on desktop |
+| **📸 Private Result Screenshot** | Hold the conversion result to save a PNG without any profit or percentage data |
+
+### Save a result screenshot
+
+1. Enter a valid unit price and amount in either currency and Send/Receive mode.
+2. **Hold the main result for about 0.65 seconds**, or click/tap **Screenshot** (also accessible with Enter/Space).
+3. Preview the image and choose **Save PNG**, or **Share** on browsers that support image sharing. On mobile, you can also hold the preview image to save it.
+
+The image contains only the conversion result, formula, unit price, and amount. All profit and percentage panels are excluded, even when open; the calculator's values and panels are left unchanged. Short taps and scrolling do not capture an image. PNGs are generated locally using native canvas, with no upload, external library, or network connection required.
 
 ---
 
@@ -207,6 +216,20 @@ calculator_Exchange_V2/
 ├── docker-compose.yml  # Docker Compose setup
 └── .gitignore
 ```
+
+---
+
+## 🧪 Screenshot regression tests
+
+The app still needs no dependencies or build step. Optional browser tests use Node.js 20+ and Playwright:
+
+```bash
+npm install --no-save --package-lock=false playwright
+npx playwright install chromium
+node --test tests/screenshot.test.cjs
+```
+
+The tests serve the page internally (no dev server needed) and cover USD/IQD in both modes, real mouse/touch holds, gesture cancellation, profit exclusion, PNG downloads, keyboard access, small-screen layout, sharing fallbacks, and export errors. A custom browser installation can be supplied with `CHROMIUM_EXECUTABLE_PATH` and, if needed, `CHROMIUM_ARGS` (a JSON array).
 
 ---
 

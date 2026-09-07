@@ -1,0 +1,2 @@
+# Optional browser-test dependencies (not needed to run or deploy the app)
+node_modules/
