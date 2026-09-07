@@ -5,7 +5,7 @@
 
 A sleek, dark-themed **P2P exchange calculator** for converting **US Dollar (USD)** and **Iraqi Dinar (IQD)** to **USDT**. Built as a single static file — zero dependencies, blazing fast, and fully responsive across **all devices**.
 
-![Dark Theme](https://img.shields.io/badge/theme-dark-black?style=flat-square) ![PWA Ready](https://img.shields.io/badge/PWA-ready-c5f000?style=flat-square) ![Zero Dependencies](https://img.shields.io/badge/deps-zero-success?style=flat-square) ![Responsive](https://img.shields.io/badge/responsive-all_devices-blue?style=flat-square)
+![Dark Theme](https://img.shields.io/badge/theme-dark-black?style=flat-square) ![PWA Ready](https://img.shields.io/badge/PWA-ready-c5f000?style=flat-square) ![Zero Dependencies](https://img.shields.io/badge/deps-zero-success?style=flat-square) ![Responsive](https://img.shields.io/badge/responsive-all_devices-blue?style=flat-square) ![Made by AI](https://img.shields.io/badge/made_by_AI-Kimi_2.6-c5f000?style=flat-square)
 
 ---
 
@@ -223,3 +223,7 @@ Pull requests welcome! This is a single-file app — keep it simple.
 ## 📄 License
 
 **MIT** — free to use, modify, and distribute.
+
+---
+
+**Made by AI · Kimi 2.6** 🤖
