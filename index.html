@@ -206,7 +206,14 @@
     flex-shrink:0;
   }
 
-  .result-wrap { text-align:center; margin-top:16px; cursor:pointer; position:relative; }
+  .result-wrap { text-align:center; margin-top:16px; cursor:pointer; position:relative; touch-action:manipulation; -webkit-touch-callout:none; -webkit-user-select:none; user-select:none; }
+  .result-wrap.holding { animation: holdpulse 0.5s ease; }
+  @keyframes holdpulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.03); }
+  }
+  .result-wrap.holding .result-label { color:#c5f000; }
+  .result-wrap .result, .result-wrap .result-sub, .result-wrap .result-label { transition: transform 0.2s; }
   .result-wrap.copied { animation: pop 0.3s ease; }
   @keyframes pop {
     0% { transform: scale(1); }
@@ -802,7 +809,7 @@
       <div class="result-label" id="resultlabel">Receive</div>
       <div class="result"><span id="out">0.00</span><span class="unit" id="outunit">USDT</span></div>
       <div class="result-sub" id="outsub">enter price &amp; amount</div>
-      <div class="copy-hint">tap to copy</div>
+      <div class="copy-hint">tap to copy · hold for screenshot (profit hidden)</div>
     </div>
     <div class="fields">
       <div class="field">
@@ -1618,29 +1625,84 @@ document.getElementById("resetamt").addEventListener("click", () => { amtEl.valu
 document.querySelectorAll(".tab").forEach(t => t.addEventListener("click", () => switchCurrency(t.dataset.currency)));
 document.querySelectorAll(".mode-btn").forEach(b => b.addEventListener("click", () => switchMode(b.dataset.mode)));
 
-// Unified tap handler — works for click, touch, and pointer events
+// Tap vs HOLD gesture on the result:
+//   · Quick tap  → copy the number result
+//   · Hold/long-press → capture a screenshot with profit hidden
 const resultTap = document.getElementById("resulttap");
+const HOLD_MS = 550;
 
-// Prevent 300ms delay on mobile by using touchend
-let touchStarted = false;
-resultTap.addEventListener("touchstart", function(e) {
-  touchStarted = true;
-}, { passive: true });
+let holdActive = false;
+let holdFired = false;   // true once the hold-screenshot has been triggered
+let holdTimer = null;
+let holdPulseTimer = null;
 
-resultTap.addEventListener("touchend", function(e) {
-  if (touchStarted) {
-    e.preventDefault();
-    doCopy();
-    touchStarted = false;
+function beginHold() {
+  holdActive = true;
+  holdFired = false;
+  clearTimeout(holdTimer);
+  clearTimeout(holdPulseTimer);
+  holdTimer = setTimeout(() => {
+    if (!holdActive) return;
+    holdFired = true;
+    // visual pulse while holding
+    resultTap.classList.add("holding");
+    clearTimeout(holdPulseTimer);
+    holdPulseTimer = setTimeout(() => resultTap.classList.remove("holding"), 500);
+    // close keyboard for a clean capture
+    if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+    copyScreenshotNoProfit();
+  }, HOLD_MS);
+}
+
+function endHold() {
+  if (!holdActive) return;
+  holdActive = false;
+  clearTimeout(holdTimer);
+  if (holdFired) {
+    // long-press already took the screenshot — do nothing on release
+    holdFired = false;
+    return;
   }
-}, { passive: false });
+  // quick tap → copy number
+  doCopy();
+}
 
-resultTap.addEventListener("click", function(e) {
-  // Only fire if touch didn't already handle it
-  if (!touchStarted) {
-    doCopy();
-  }
-});
+function cancelHold() {
+  holdActive = false;
+  clearTimeout(holdTimer);
+  clearTimeout(holdPulseTimer);
+  resultTap.classList.remove("holding");
+  holdFired = false;
+}
+
+// Use Pointer Events when available (modern browsers); fall back to touch+mouse.
+if (window.PointerEvent) {
+  resultTap.addEventListener("pointerdown", (e) => {
+    if (e.target.closest("input, button, a")) return;
+    beginHold();
+  });
+  resultTap.addEventListener("pointerup", () => endHold());
+  resultTap.addEventListener("pointercancel", cancelHold);
+  resultTap.addEventListener("pointerleave", (e) => {
+    if (e.pointerType === "mouse") cancelHold();
+  });
+} else {
+  resultTap.addEventListener("touchstart", (e) => {
+    if (e.target.closest("input, button, a")) return;
+    beginHold();
+  }, { passive: true });
+  resultTap.addEventListener("touchend", (e) => {
+    e.preventDefault(); // stop 300ms delay / text selection
+    endHold();
+  }, { passive: false });
+  resultTap.addEventListener("touchcancel", cancelHold);
+  resultTap.addEventListener("mousedown", (e) => {
+    if (e.target.closest("input, button, a")) return;
+    beginHold();
+  });
+  resultTap.addEventListener("mouseup", () => endHold());
+  resultTap.addEventListener("mouseleave", cancelHold);
+}
 
 // ===== PERCENTAGE OF PROFIT =====
 const pctBtn = document.getElementById("pctBtn");

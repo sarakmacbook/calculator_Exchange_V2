@@ -16,8 +16,8 @@ A sleek, dark-themed **P2P exchange calculator** for converting **US Dollar (USD
 | **🔄 Dual Currency** | Switch between **USD** and **IQD** instantly |
 | **⚡ Real-time** | Result updates as you type — no submit button |
 | **📊 Scale Table** | See preset conversions at your current rate |
-| **📋 Tap to Copy** | One tap copies the result (works on all devices) |
-| **📸 Screenshot (profit hidden)** | Tap to copy/share a full screenshot image with all profit results hidden |
+| **📋 Tap to Copy** | One tap on the result copies the number (works on all devices) |
+| **📸 Hold to Screenshot (profit hidden)** | Long-press the result to capture a screenshot with all profit results hidden (also available as a button) |
 | **💾 Persistent** | Remembers your last rate & amount (localStorage) |
 | **🎯 Quick Chips** | Tap 500 / 1K / 1.5K / 2K (USD) or 500K / 1M / 1.5M / 2M (IQD) |
 | **📱 PWA Ready** | Add to home screen on iOS & Android |
