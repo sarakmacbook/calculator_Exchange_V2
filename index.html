@@ -429,16 +429,7 @@
   .toast.show { opacity:1; }
 
   /* Result-only screenshot: no profit data is captured. */
-  .screenshot-actions { display:flex; flex-direction:column; align-items:center; gap:4px; margin-top:12px; }
-  .screenshot-btn {
-    display:inline-flex; align-items:center; justify-content:center; gap:6px;
-    min-height:44px; padding:8px 14px; border:1px solid #2a2a2a; border-radius:12px;
-    background:#181818; color:#c5f000; font-size:12px; font-weight:600; font-family:inherit; cursor:pointer;
-  }
-  .screenshot-btn svg { width:16px; height:16px; fill:currentColor; }
-  .screenshot-btn:hover:not(:disabled) { border-color:#c5f000; }
-  .screenshot-btn:disabled { opacity:.4; cursor:not-allowed; }
-  .screenshot-hint { color:#909090; font-size:11px; text-align:center; }
+  .screenshot-hint { color:#909090; font-size:11px; text-align:center; margin-top:12px; }
   .screenshot-dialog {
     position:fixed; margin:auto; width:calc(100% - 32px); max-width:460px;
     max-height:calc(100vh - 32px); max-height:calc(100dvh - 32px); overflow-y:auto;
@@ -466,7 +457,7 @@
   .screenshot-save-actions .screenshot-save { background:#c5f000; border-color:#c5f000; color:#000; }
   .screenshot-save-actions button:disabled { opacity:.5; cursor:wait; }
   .screenshot-dialog [hidden] { display:none; }
-  .screenshot-btn:focus-visible, .screenshot-dialog :focus-visible { outline:2px solid #c5f000; outline-offset:3px; }
+  .result-wrap:focus-visible, .screenshot-dialog :focus-visible { outline:2px solid #c5f000; outline-offset:3px; }
 
   /* === FIND RATE PANEL === */
   .find-rate-toggle {
@@ -805,18 +796,12 @@
       <div class="pr-close" id="prClose">Close</div>
     </div>
 
-    <div class="result-wrap" id="resulttap" title="Hold to screenshot the result without profit" aria-describedby="screenshotHint">
+    <div class="result-wrap" id="resulttap" role="button" tabindex="0" title="Hold to screenshot the result without profit" aria-haspopup="dialog" aria-controls="screenshotDialog" aria-describedby="screenshotHint">
       <div class="result-label" id="resultlabel">Receive</div>
       <div class="result"><span id="out">0.00</span><span class="unit" id="outunit">USDT</span></div>
       <div class="result-sub" id="outsub">enter price &amp; amount</div>
     </div>
-    <div class="screenshot-actions">
-      <button class="screenshot-btn" id="screenshotBtn" type="button" aria-haspopup="dialog" aria-controls="screenshotDialog" aria-describedby="screenshotHint" disabled>
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3 7 5H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3l-2-2H9zm3 5a5 5 0 1 1 0 10 5 5 0 0 1 0-10zm0 2a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"/></svg>
-        Screenshot
-      </button>
-      <div class="screenshot-hint" id="screenshotHint">Or hold the result · Profit excluded</div>
-    </div>
+    <div class="screenshot-hint" id="screenshotHint">Hold the result · Profit excluded</div>
     <div class="fields">
       <div class="field">
         <div class="flabel"><span>Unit price</span><span class="reset" id="resetrate">reset</span></div>
@@ -1195,7 +1180,6 @@ function toast(msg) {
 
 // ===== RESULT SCREENSHOT (CONVERSION DATA ONLY) =====
 const resultTap = document.getElementById("resulttap");
-const screenshotBtn = document.getElementById("screenshotBtn");
 const screenshotDialog = document.getElementById("screenshotDialog");
 const screenshotImage = document.getElementById("screenshotImage");
 const screenshotDownload = document.getElementById("screenshotDownload");
@@ -1215,9 +1199,8 @@ function hasScreenshotResult() {
 
 function updateScreenshotAvailability() {
   const valid = hasScreenshotResult();
-  screenshotBtn.disabled = !valid;
-  screenshotBtn.setAttribute("aria-busy", String(screenshotBusy));
-  screenshotBtn.title = valid ? "Screenshot without profit" : "Enter a valid unit price and amount first";
+  resultTap.setAttribute("aria-busy", String(screenshotBusy));
+  resultTap.title = valid ? "Hold to screenshot the result without profit" : "Enter a valid unit price and amount first";
   resultTap.classList.toggle("screenshot-ready", valid);
 }
 
@@ -1364,7 +1347,14 @@ document.addEventListener("scroll", cancelScreenshotHold, { capture: true, passi
 document.addEventListener("visibilitychange", cancelScreenshotHold);
 window.addEventListener("blur", cancelScreenshotHold);
 document.addEventListener("keydown", event => { if (event.key === "Escape") cancelScreenshotHold(); });
-screenshotBtn.addEventListener("click", openScreenshot);
+// The visible button is gone; the result itself is the trigger. Keyboard users
+// activate it with Enter/Space while the pointer gesture stays press-and-hold.
+resultTap.addEventListener("keydown", event => {
+  if (event.repeat || (event.key !== "Enter" && event.key !== " ")) return;
+  event.preventDefault();
+  cancelScreenshotHold();
+  openScreenshot();
+});
 document.getElementById("screenshotClose").addEventListener("click", () => screenshotDialog.close());
 screenshotDialog.addEventListener("click", event => {
   const rect = screenshotDialog.getBoundingClientRect();
@@ -1374,7 +1364,7 @@ screenshotDialog.addEventListener("click", event => {
 });
 screenshotDialog.addEventListener("close", () => {
   clearScreenshot();
-  screenshotBtn.focus({ preventScroll: true });
+  resultTap.focus({ preventScroll: true });
 });
 screenshotShare.addEventListener("click", async () => {
   if (!screenshotFile || screenshotShare.disabled) return;
