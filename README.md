@@ -16,7 +16,6 @@ A sleek, dark-themed **P2P exchange calculator** for converting **US Dollar (USD
 | **🔄 Dual Currency** | Switch between **USD** and **IQD** instantly |
 | **⚡ Real-time** | Result updates as you type — no submit button |
 | **📊 Scale Table** | See preset conversions at your current rate |
-| **📸 Hold to Screenshot (profit hidden)** | Long-press the result to copy a screenshot with all profit results hidden |
 | **💾 Persistent** | Remembers your last rate & amount (localStorage) |
 | **🎯 Quick Chips** | Tap 500 / 1K / 1.5K / 2K (USD) or 500K / 1M / 1.5M / 2M (IQD) |
 | **📱 PWA Ready** | Add to home screen on iOS & Android |
@@ -127,7 +126,6 @@ Just upload `index.html` — it works on **any** static host:
 │       Receive           │
 │     500.00 USDT         │
 │  500 USD ÷ 1            │
-│  hold for screenshot    │
 │                         │
 │  Unit price      reset  │
 │  1                      │
@@ -155,7 +153,6 @@ Just upload `index.html` — it works on **any** static host:
         │                     │
         │     Receive         │
         │   500.00 USDT       │
-        │ hold for screenshot │
         │                     │
         │  Unit price  reset  │
         │  1                  │
