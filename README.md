@@ -26,7 +26,7 @@ A sleek, dark-themed **P2P exchange calculator** for converting **US Dollar (USD
 ### Save a result screenshot
 
 1. Enter a valid unit price and amount in either currency and Send/Receive mode.
-2. **Hold the main result for about 0.65 seconds**, or click/tap **Screenshot** (also accessible with Enter/Space).
+2. **Hold the main result for about 0.65 seconds** (with a keyboard: focus the result and press Enter/Space).
 3. Preview the image and choose **Save PNG**, or **Share** on browsers that support image sharing. On mobile, you can also hold the preview image to save it.
 
 The image contains only the conversion result, formula, unit price, and amount. All profit and percentage panels are excluded, even when open; the calculator's values and panels are left unchanged. Short taps and scrolling do not capture an image. PNGs are generated locally using native canvas, with no upload, external library, or network connection required.

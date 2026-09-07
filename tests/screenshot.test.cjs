@@ -54,7 +54,8 @@ async function setValues(page, rate = '1.05', amount = '1000') {
 }
 
 async function openScreenshot(page) {
-  await page.click('#screenshotBtn');
+  await page.focus('#resulttap');
+  await page.keyboard.press('Enter');
   await page.waitForSelector('#screenshotDialog[open]');
   await page.locator('#screenshotImage').evaluate(image => image.decode());
 }
@@ -71,6 +72,15 @@ async function pointer(page, type, extra = {}, selector = '#resulttap') {
     clientX: 100, clientY: 100, bubbles: true, ...extra
   });
 }
+
+test('the standalone screenshot button is removed; the result itself is the only trigger', async t => {
+  const page = await calculator(t);
+  assert.equal(html.includes('screenshotBtn'), false, 'No screenshot button markup may remain');
+  assert.equal(await page.locator('.screenshot-btn').count(), 0);
+  assert.equal(await page.locator('#resulttap').getAttribute('role'), 'button');
+  assert.equal(await page.locator('#resulttap').getAttribute('tabindex'), '0');
+  assert.equal(await page.locator('#screenshotHint').textContent(), 'Hold the result · Profit excluded');
+});
 
 const conversions = [
   { currency: 'usd', mode: 'send', rate: '1.05', amount: '1000', label: 'RECEIVE', result: '952.38', unit: 'USDT', pair: 'USD → USDT', input: '1,000 USD' },
@@ -189,24 +199,25 @@ test('right-click and holding profit results do not export', async t => {
 
 test('missing, invalid, zero, negative and non-finite results cannot be exported', async t => {
   const page = await calculator(t);
-  assert.equal(await page.locator('#screenshotBtn').isDisabled(), true);
+  const ready = () => page.locator('#resulttap').evaluate(el => el.classList.contains('screenshot-ready'));
+  assert.equal(await ready(), false);
   for (const [rate, amount] of [['1', ''], ['0', '100'], ['-1', '100'], ['abc', '100'], ['1', '0'], ['1', '-10'], ['1', 'NaN'], ['1e-300', '1e300'], ['1e300', '1e-300']]) {
     await setValues(page, rate, amount);
-    assert.equal(await page.locator('#screenshotBtn').isDisabled(), true, `${rate}, ${amount}`);
+    assert.equal(await ready(), false, `${rate}, ${amount}`);
     await pointer(page, 'pointerdown');
     await page.clock.runFor(700);
     await pointer(page, 'pointerup');
     assert.equal(await page.locator('#screenshotDialog').evaluate(el => el.open), false);
   }
   await setValues(page);
-  assert.equal(await page.locator('#screenshotBtn').isEnabled(), true);
+  assert.equal(await ready(), true);
 });
 
 test('keyboard activation, Escape, focus return and URL cleanup work', async t => {
   const page = await calculator(t);
   await setValues(page);
   for (const key of ['Enter', 'Space']) {
-    await page.focus('#screenshotBtn');
+    await page.focus('#resulttap');
     await page.keyboard.press(key);
     await page.waitForSelector('#screenshotDialog[open]');
     assert.equal(await page.evaluate(() => document.activeElement.id), 'screenshotClose');
@@ -214,7 +225,7 @@ test('keyboard activation, Escape, focus return and URL cleanup work', async t =
     await page.keyboard.press('Escape');
     await page.waitForFunction(() => !document.getElementById('screenshotImage').hasAttribute('src'));
     await page.clock.runFor(1100);
-    assert.equal(await page.evaluate(() => document.activeElement.id), 'screenshotBtn');
+    assert.equal(await page.evaluate(() => document.activeElement.id), 'resulttap');
     assert.ok((await page.evaluate(() => window.revokedUrls)).includes(url));
     assert.equal(await page.locator('#screenshotDownload').getAttribute('href'), null);
   }
@@ -281,10 +292,11 @@ test('PNG export failure gives feedback and can be retried', async t => {
     window.originalToBlob = HTMLCanvasElement.prototype.toBlob;
     HTMLCanvasElement.prototype.toBlob = callback => callback(null);
   });
-  await page.click('#screenshotBtn');
+  await page.focus('#resulttap');
+  await page.keyboard.press('Enter');
   assert.equal(await page.locator('#screenshotDialog').evaluate(el => el.open), false);
   assert.equal(await page.locator('#toast').textContent(), 'Could not create screenshot. Please try again.');
-  assert.equal(await page.locator('#screenshotBtn').getAttribute('aria-busy'), 'false');
+  assert.equal(await page.locator('#resulttap').getAttribute('aria-busy'), 'false');
   await page.evaluate(() => { HTMLCanvasElement.prototype.toBlob = window.originalToBlob; });
   await openScreenshot(page);
   assert.equal(await page.locator('#screenshotImage').evaluate(image => image.naturalWidth), 1200);
