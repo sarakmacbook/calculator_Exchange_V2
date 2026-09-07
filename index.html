@@ -219,6 +219,42 @@
   .result-sub { margin-top:4px; font-size:12px; color:#5a5a5a; font-variant-numeric:tabular-nums; }
   .copy-hint { margin-top:2px; font-size:10px; color:#3d3d3d; }
 
+  /* === SCREENSHOT (HIDE PROFIT) BUTTON === */
+  .shot-btn {
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+    margin-top:8px;
+    padding:9px 6px;
+    background:transparent;
+    border:1px dashed #2a2a2a;
+    border-radius:12px;
+    color:#c5f000;
+    font-size:12px;
+    font-weight:700;
+    font-family:inherit;
+    cursor:pointer;
+    transition: all 0.2s;
+    width:100%;
+  }
+  .shot-btn:hover { border-color:#c5f000; background:rgba(197,240,0,0.06); }
+  .shot-btn:active { opacity:0.7; }
+  .shot-btn:disabled { opacity:0.5; cursor:wait; }
+  .shot-btn svg { width:14px; height:14px; fill:currentColor; flex-shrink:0; }
+
+  /* Elements hidden while capturing the share screenshot */
+  body.shot-mode .side-panel,
+  body.shot-mode #profitToggle,
+  body.shot-mode #profitPanel,
+  body.shot-mode #shotBtn,
+  body.shot-mode .copy-hint,
+  body.shot-mode .toast {
+    display:none !important;
+  }
+  body.shot-mode .main-content { padding-right:0; }
+  body.shot-mode .app-frame { box-shadow:none; }
+
   @media (min-width: 768px) {
     .result { font-size:56px; }
     .result .unit { font-size:18px; }
@@ -657,6 +693,7 @@
 </style>
 <base target="_blank">
 <base target="_blank">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body>
   <div class="app-frame">
@@ -785,6 +822,12 @@
       <button class="chip" data-v="1500">1.5K</button>
       <button class="chip" data-v="2000">2K</button>
     </div>
+
+    <!-- Screenshot (profit hidden) -->
+    <button class="shot-btn" id="shotBtn">
+      <svg viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
+      Tap to copy screenshot · profit hidden
+    </button>
     </div><!-- /main-content -->
     <div class="side-panel">
     <div class="scale">
@@ -1221,6 +1264,230 @@ function showCopyFeedback() {
   wrap.classList.add("copied");
   toast("Copied");
 }
+
+/* ========== SCREENSHOT COPY (PROFIT HIDDEN) ==========
+   Captures the calculator as a PNG image with ALL profit
+   elements hidden (side Profit Analysis panel, Profit
+   Calculator toggle/panel). Tries in order:
+   1. Copy image to clipboard (paste anywhere)
+   2. Native share sheet (mobile)
+   3. Download PNG file
+*/
+const shotBtn = document.getElementById("shotBtn");
+const shotBtnHTML = shotBtn.innerHTML;
+
+function ensureShotLib() {
+  if (typeof html2canvas !== "undefined") return Promise.resolve();
+  // CDN blocked/failed at load — retry dynamically once
+  return new Promise((resolve, reject) => {
+    const s = document.createElement("script");
+    s.src = "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js";
+    s.onload = () => resolve();
+    s.onerror = () => reject(new Error("shot-lib"));
+    document.head.appendChild(s);
+  });
+}
+
+/* Offline fallback: draws a clean receipt-style image with zero
+   dependencies. Never includes any profit data. */
+function roundRectPath(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+
+function drawFallbackShot() {
+  const S = 3; // export scale
+  const W = 430, PAD = 28;
+  const cfg = CURRENCY_CONFIG[currentCurrency];
+  const resultLabel = document.getElementById("resultlabel").textContent;
+  const outVal = document.getElementById("out").textContent;
+  const outUnit = document.getElementById("outunit").textContent;
+  const outSub = document.getElementById("outsub").textContent;
+  const rateVal = rateEl.value ? fmt(num(rateEl.value), currentCurrency === "usd" ? 4 : 2) : "—";
+  const amtVal = amtEl.value ? fmt(num(amtEl.value), 0) : "—";
+  const amtName = currentMode === "send" ? ("Amount send (" + cfg.amtLabel + ")") : "Amount receive (USDT)";
+
+  const H = 560;
+  const cv = document.createElement("canvas");
+  cv.width = W * S; cv.height = H * S;
+  const ctx = cv.getContext("2d");
+  ctx.scale(S, S);
+
+  // background + frame
+  ctx.fillStyle = "#000000";
+  ctx.fillRect(0, 0, W, H);
+  ctx.strokeStyle = "#222222"; ctx.lineWidth = 2;
+  roundRectPath(ctx, 8, 8, W - 16, H - 16, 24); ctx.stroke();
+
+  const cx = W / 2;
+  let y = 52;
+  ctx.textAlign = "center"; ctx.textBaseline = "alphabetic";
+
+  // header
+  ctx.fillStyle = "#909090";
+  ctx.font = "600 13px -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
+  ctx.fillText("C A L C U L A T O R", cx, y);
+  y += 22;
+  ctx.fillStyle = "#3d3d3d";
+  ctx.font = "600 12px -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
+  ctx.fillText(cfg.amtLabel + "  ·  " + (currentMode === "send" ? "SEND" : "RECEIVE"), cx, y);
+
+  // result
+  y += 40;
+  ctx.fillStyle = "#c5f000";
+  ctx.font = "700 14px -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
+  ctx.fillText(resultLabel.toUpperCase(), cx, y);
+  y += 52;
+  ctx.fillStyle = "#ffffff";
+  ctx.font = "700 52px -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
+  const valW = ctx.measureText(outVal).width;
+  ctx.font = "600 18px -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
+  const unitW = ctx.measureText(outUnit).width + 8;
+  const totalW = valW + unitW;
+  ctx.font = "700 52px -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
+  ctx.fillText(outVal, cx - totalW / 2 + valW / 2, y);
+  ctx.fillStyle = "#909090";
+  ctx.font = "600 18px -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
+  ctx.textAlign = "left";
+  ctx.fillText(outUnit, cx + totalW / 2 - unitW + 8, y - 6);
+  ctx.textAlign = "center";
+
+  y += 30;
+  ctx.fillStyle = "#5a5a5a";
+  ctx.font = "400 13px -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
+  ctx.fillText(outSub, cx, y);
+
+  // fields
+  const boxW = W - PAD * 2;
+  function fieldBox(yy, label, value, cur) {
+    ctx.fillStyle = "#181818";
+    roundRectPath(ctx, PAD, yy, boxW, 86, 16); ctx.fill();
+    ctx.textAlign = "left";
+    ctx.fillStyle = "#909090";
+    ctx.font = "400 12px -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
+    ctx.fillText(label, PAD + 16, yy + 26);
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "700 24px -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
+    ctx.fillText(value, PAD + 16, yy + 56);
+    ctx.fillStyle = "#5a5a5a";
+    ctx.font = "600 11px -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
+    ctx.fillText(cur, PAD + 16, yy + 74);
+    ctx.textAlign = "center";
+  }
+  y += 28;
+  fieldBox(y, "Unit price", rateVal, cfg.rateLabel);
+  y += 98;
+  fieldBox(y, amtName, amtVal, currentMode === "send" ? cfg.amtLabel : "USDT");
+
+  // footer
+  ctx.fillStyle = "#3d3d3d";
+  ctx.font = "400 11px -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
+  const d = new Date();
+  const stamp = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+  ctx.fillText("USD → USDT Calculator  ·  " + stamp, cx, H - 30);
+
+  return cv;
+}
+
+async function copyScreenshotNoProfit() {
+  shotBtn.disabled = true;
+  shotBtn.innerHTML = "Capturing…";
+
+  // Hide profit UI for the capture only
+  document.body.classList.add("shot-mode");
+  // Let layout settle + close keyboard-driven zoom quirks
+  if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+  await new Promise(r => setTimeout(r, 180));
+
+  let canvas = null;
+  try {
+    await ensureShotLib();
+    const target = document.querySelector(".app-frame");
+    canvas = await html2canvas(target, {
+      backgroundColor: "#000000",
+      scale: Math.min(3, Math.max(2, (window.devicePixelRatio || 1) * 2)),
+      useCORS: true,
+      logging: false
+    });
+  } catch (e) {
+    // Offline / CDN blocked / capture failed → zero-dependency fallback
+    try { canvas = drawFallbackShot(); } catch (e2) { canvas = null; }
+  }
+  document.body.classList.remove("shot-mode");
+
+  if (!canvas) {
+    toast("Screenshot failed");
+    shotBtn.disabled = false;
+    shotBtn.innerHTML = shotBtnHTML;
+    return;
+  }
+
+  const blob = await new Promise(res => canvas.toBlob(res, "image/png"));
+  if (!blob) {
+    toast("Screenshot failed");
+    shotBtn.disabled = false;
+    shotBtn.innerHTML = shotBtnHTML;
+    return;
+  }
+
+  // --- Strategy 1: copy image to clipboard ---
+  try {
+    if (window.ClipboardItem && navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
+      shotBtn.classList.remove("copied");
+      void shotBtn.offsetWidth; // force reflow
+      shotBtn.classList.add("copied");
+      toast("Screenshot copied · profit hidden");
+      shotBtn.disabled = false;
+      shotBtn.innerHTML = shotBtnHTML;
+      return;
+    }
+    throw new Error("no-clipboard");
+  } catch (e) { /* fall through to share/download */ }
+
+  // --- Strategy 2: native share sheet (mobile) ---
+  try {
+    const file = new File([blob], "calculator.png", { type: "image/png" });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({ files: [file], title: "Calculator" });
+      toast("Shared · profit hidden");
+      shotBtn.disabled = false;
+      shotBtn.innerHTML = shotBtnHTML;
+      return;
+    }
+    throw new Error("no-share");
+  } catch (e) {
+    if (e && e.name === "AbortError") { // user cancelled share sheet
+      shotBtn.disabled = false;
+      shotBtn.innerHTML = shotBtnHTML;
+      return;
+    }
+    /* fall through to download */ }
+
+  // --- Strategy 3: download PNG file ---
+  try {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "calculator-no-profit.png";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+    toast("Screenshot saved · profit hidden");
+  } catch (e) {
+    toast("Screenshot failed");
+  }
+  shotBtn.disabled = false;
+  shotBtn.innerHTML = shotBtnHTML;
+}
+
+shotBtn.addEventListener("click", copyScreenshotNoProfit);
 
 // ===== FIND RATE LOGIC =====
 function updateFindRate() {
