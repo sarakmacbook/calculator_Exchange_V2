@@ -1,0 +1,6 @@
+:80 {
+    root * /var/www/iqd-usdt-calc
+    file_server
+    try_files {path} {path}/ /index.html
+    encode gzip
+}

@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="USD→USDT">
+<meta name="theme-color" content="#000000">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="format-detection" content="telephone=no">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="icon-512.png">
+<title>USD → USDT Calculator</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body { height:100%; }
+  body {
+    background:#000; color:#fff;
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    min-height:100vh; min-height:100dvh;
+    display:flex; flex-direction:column;
+    padding:calc(env(safe-area-inset-top) + 18px) 20px calc(env(safe-area-inset-bottom) + 18px);
+    user-select:none; -webkit-user-select:none;
+    -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  @media (min-width: 768px) {
+    body {
+      align-items:center;
+      justify-content:center;
+      padding: 20px;
+      overflow: hidden;
+    }
+    .app-frame {
+      width:100%;
+      max-width:420px;
+      max-height: calc(100vh - 40px);
+      max-height: calc(100dvh - 40px);
+      background:#000;
+      border-radius:24px;
+      border:1px solid #222;
+      box-shadow:0 0 60px rgba(197,240,0,0.08);
+      overflow: hidden;
+      display:flex;
+      flex-direction:column;
+      padding:calc(env(safe-area-inset-top) + 14px) 20px calc(env(safe-area-inset-bottom) + 14px);
+    }
+  }
+  @media (min-width: 1024px) {
+    .app-frame {
+      max-width:460px;
+    }
+  }
+  @media (max-width: 767px) {
+    .app-frame {
+      width:100%; height:100%; display:flex; flex-direction:column;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+  }
+
+  .label { font-size:13px; color:#909090; letter-spacing:.5px; text-transform:uppercase; }
+
+  .tabs { display:flex; gap:8px; margin-top:10px; }
+  .tab {
+    flex:1; background:#181818; border:none; border-radius:12px; color:#909090;
+    padding:10px 0; font-size:14px; font-weight:600; font-family:inherit; cursor:pointer;
+    transition: all 0.2s;
+  }
+  .tab.active { background:#c5f000; color:#000; }
+  .tab:active { opacity:0.8; }
+
+  /* Mode switcher */
+  .mode-switch {
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+    margin-top:10px;
+    padding:5px;
+    background:#181818;
+    border-radius:14px;
+  }
+  .mode-switch .mode-btn {
+    flex:1;
+    background:transparent;
+    border:none;
+    border-radius:10px;
+    color:#909090;
+    padding:7px 0;
+    font-size:13px;
+    font-weight:600;
+    font-family:inherit;
+    cursor:pointer;
+    transition: all 0.2s;
+    text-align:center;
+  }
+  .mode-switch .mode-btn.active {
+    background:#c5f000;
+    color:#000;
+  }
+  .mode-switch .mode-btn:active { opacity:0.8; }
+  .mode-arrow {
+    color:#5a5a5a;
+    font-size:16px;
+    font-weight:700;
+    flex-shrink:0;
+  }
+
+  .result-wrap { text-align:center; margin-top:16px; cursor:pointer; position:relative; }
+  .result-wrap.copied { animation: pop 0.3s ease; }
+  @keyframes pop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+  }
+  .result-label { font-size:13px; color:#c5f000; font-weight:600; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px; }
+  .result { font-size:42px; font-weight:700; line-height:1; letter-spacing:-1px; font-variant-numeric:tabular-nums; }
+  .result .unit { font-size:16px; font-weight:600; color:#909090; letter-spacing:0; margin-left:4px; }
+  .result-sub { margin-top:4px; font-size:12px; color:#5a5a5a; font-variant-numeric:tabular-nums; }
+  .copy-hint { margin-top:2px; font-size:10px; color:#3d3d3d; }
+
+  @media (min-width: 768px) {
+    .result { font-size:48px; }
+    .result .unit { font-size:16px; }
+    .result-wrap { margin-top:14px; }
+    .mode-switch { margin-top:10px; }
+    .mode-switch .mode-btn { font-size:13px; padding:7px 0; }
+    .tabs { margin-top:8px; }
+    .tab { padding:9px 0; }
+  }
+
+  .fields { margin-top:16px; display:flex; flex-direction:column; gap:8px; }
+  .field { background:#181818; border-radius:16px; padding:10px 14px; }
+  .field .flabel { font-size:11px; color:#909090; margin-bottom:3px; display:flex; justify-content:space-between; }
+  .field .flabel .reset { color:#c5f000; font-weight:600; cursor:pointer; font-size:11px; }
+  .field input {
+    width:100%; background:transparent; border:none; outline:none; color:#fff;
+    font-size:22px; font-weight:700; font-family:inherit;
+    font-variant-numeric:tabular-nums; user-select:text; -webkit-user-select:text;
+  }
+  .field input::placeholder { color:#3d3d3d; font-weight:400; }
+  .field .cur { font-size:11px; color:#5a5a5a; font-weight:600; margin-top:1px; }
+
+  @media (min-width: 768px) {
+    .fields { margin-top:14px; gap:8px; }
+    .field { padding:10px 16px; }
+    .field input { font-size:24px; }
+    .field .flabel { font-size:11px; }
+    .field .flabel .reset { font-size:11px; }
+  }
+
+  .chips { display:flex; gap:6px; margin-top:8px; }
+  .chip {
+    flex:1; background:#181818; border:none; border-radius:12px; color:#fff;
+    padding:8px 0; font-size:13px; font-weight:600; font-family:inherit; cursor:pointer;
+  }
+  .chip:active { background:#2a2a2a; }
+
+  @media (min-width: 768px) {
+    .chips { margin-top:8px; }
+    .chip { padding:8px 0; font-size:13px; }
+  }
+
+  .scale { margin-top:auto; padding-top:12px; }
+  .scale .srow {
+    display:flex; justify-content:space-between; padding:7px 4px;
+    border-bottom:1px solid #161616; font-size:13px; color:#909090;
+    font-variant-numeric:tabular-nums;
+  }
+  .scale .srow b { color:#c5f000; font-weight:700; }
+  .scale .stitle { font-size:10px; color:#5a5a5a; text-transform:uppercase; letter-spacing:.5px; margin-bottom:3px; }
+
+  @media (min-width: 768px) {
+    .scale { padding-top:10px; }
+    .scale .srow { font-size:13px; padding:6px 4px; }
+  }
+
+  .toast {
+    position:fixed; left:50%; bottom:15%; transform:translateX(-50%);
+    background:#c5f000; color:#000; padding:10px 22px; border-radius:22px;
+    font-size:14px; font-weight:700; opacity:0; pointer-events:none; transition:opacity .25s;
+    z-index:99;
+  }
+  .toast.show { opacity:1; }
+
+  /* === FIND RATE PANEL === */
+  .find-rate-toggle {
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+    margin-top:8px;
+    padding:6px;
+    background:transparent;
+    border:1px dashed #2a2a2a;
+    border-radius:12px;
+    color:#5a5a5a;
+    font-size:12px;
+    font-weight:600;
+    font-family:inherit;
+    cursor:pointer;
+    transition: all 0.2s;
+    width:100%;
+  }
+  .find-rate-toggle:hover { border-color:#c5f000; color:#c5f000; }
+  .find-rate-toggle svg { width:14px; height:14px; fill:currentColor; }
+
+  .find-rate-panel {
+    margin-top:8px;
+    background:#0f0f0f;
+    border:1px solid #1a1a1a;
+    border-radius:16px;
+    padding:10px 14px;
+    display:none;
+    animation: slideDown 0.25s ease;
+  }
+  .find-rate-panel.open { display:block; }
+  @keyframes slideDown {
+    from { opacity:0; transform: translateY(-6px); }
+    to { opacity:1; transform: translateY(0); }
+  }
+
+  .find-rate-panel .fr-title {
+    font-size:12px; color:#c5f000; font-weight:700;
+    text-transform:uppercase; letter-spacing:0.5px;
+    margin-bottom:8px; display:flex; align-items:center; gap:6px;
+  }
+  .find-rate-panel .fr-title svg { width:14px; height:14px; fill:#c5f000; }
+
+  .find-rate-panel .fr-row {
+    display:flex; gap:8px; margin-bottom:6px;
+  }
+  .find-rate-panel .fr-field {
+    flex:1; background:#181818; border-radius:12px; padding:8px 10px;
+  }
+  .find-rate-panel .fr-field .fr-label {
+    font-size:10px; color:#5a5a5a; margin-bottom:2px; text-transform:uppercase; letter-spacing:0.3px;
+  }
+  .find-rate-panel .fr-field input {
+    width:100%; background:transparent; border:none; outline:none; color:#fff;
+    font-size:16px; font-weight:700; font-family:inherit;
+    font-variant-numeric:tabular-nums; user-select:text; -webkit-user-select:text;
+  }
+  .find-rate-panel .fr-field input::placeholder { color:#3d3d3d; font-weight:400; }
+  .find-rate-panel .fr-field .fr-cur {
+    font-size:10px; color:#3d3d3d; margin-top:1px;
+  }
+
+  .find-rate-panel .fr-result {
+    background:#181818; border-radius:12px; padding:8px 10px;
+    margin-bottom:8px; cursor:pointer; transition: background 0.15s;
+  }
+  .find-rate-panel .fr-result:hover { background:#1f1f1f; }
+  .find-rate-panel .fr-result .fr-res-label {
+    font-size:10px; color:#5a5a5a; margin-bottom:2px;
+    display:flex; justify-content:space-between; align-items:center;
+  }
+  .find-rate-panel .fr-result .fr-res-label .fr-use {
+    color:#c5f000; font-weight:600; font-size:10px; text-transform:uppercase;
+  }
+  .find-rate-panel .fr-result .fr-res-value {
+    font-size:20px; font-weight:700; color:#fff; font-variant-numeric:tabular-nums;
+  }
+  .find-rate-panel .fr-result .fr-res-formula {
+    font-size:10px; color:#3d3d3d; margin-top:1px;
+  }
+
+  .find-rate-panel .fr-btn {
+    width:100%; background:#c5f000; color:#000; border:none; border-radius:12px;
+    padding:8px 0; font-size:13px; font-weight:700; font-family:inherit;
+    cursor:pointer; transition: opacity 0.15s;
+  }
+  .find-rate-panel .fr-btn:active { opacity:0.8; }
+  .find-rate-panel .fr-btn:disabled { background:#2a2a2a; color:#5a5a5a; cursor:not-allowed; }
+
+  .find-rate-panel .fr-close {
+    text-align:center; margin-top:6px;
+    font-size:11px; color:#3d3d3d; cursor:pointer;
+  }
+  .find-rate-panel .fr-close:active { color:#5a5a5a; }
+
+  @media (max-height: 500px) and (orientation: landscape) {
+    .result-wrap { margin-top:10px; }
+    .result { font-size:28px; }
+    .fields { margin-top:10px; gap:6px; }
+    .field { padding:8px 12px; }
+    .field input { font-size:18px; }
+    .chips { margin-top:6px; }
+    .chip { padding:6px 0; font-size:11px; }
+    .scale { padding-top:8px; }
+    .mode-switch { margin-top:8px; }
+    .mode-switch .mode-btn { font-size:11px; padding:5px 0; }
+    .find-rate-panel { padding:8px 10px; }
+    .find-rate-panel .fr-field input { font-size:14px; }
+    .find-rate-panel .fr-result .fr-res-value { font-size:16px; }
+  }
+
+  @media (max-width: 375px) {
+    .result { font-size:36px; }
+    .result .unit { font-size:14px; }
+    .field input { font-size:22px; }
+    .chip { font-size:12px; padding:9px 0; }
+    .find-rate-panel .fr-field input { font-size:16px; }
+  }
+
+  @media (min-width: 768px) and (max-width: 1023px) {
+    .app-frame {
+      max-width:400px;
+    }
+  }
+
+  @media (min-width: 1400px) {
+    .app-frame {
+      max-width:440px;
+      border-radius:28px;
+    }
+  }
+</style>
+<base target="_blank">
+<base target="_blank">
+</head>
+<body>
+  <div class="app-frame">
+    <div class="label">Calculator</div>
+    <div class="tabs">
+      <button class="tab active" data-currency="usd">USD</button>
+      <button class="tab" data-currency="iqd">IQD</button>
+    </div>
+
+    <!-- Mode Switcher -->
+    <div class="mode-switch" id="modeswitch">
+      <button class="mode-btn active" data-mode="send">Send</button>
+      <span class="mode-arrow">→</span>
+      <button class="mode-btn" data-mode="receive">Receive</button>
+    </div>
+
+    <!-- Find Rate Toggle -->
+    <button class="find-rate-toggle" id="findRateToggle">
+      <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+      Find Unit Price
+    </button>
+
+    <!-- Find Rate Panel -->
+    <div class="find-rate-panel" id="findRatePanel">
+      <div class="fr-title">
+        <svg viewBox="0 0 24 24"><path d="M9 11H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2zm2-7h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z"/></svg>
+        Calculate Rate from Trade
+      </div>
+      <div class="fr-row">
+        <div class="fr-field">
+          <div class="fr-label" id="frPaidLabel">Amount Paid</div>
+          <input id="frPaid" type="text" inputmode="decimal" placeholder="1000" autocomplete="off">
+          <div class="fr-cur" id="frPaidCur">USD</div>
+        </div>
+        <div class="fr-field">
+          <div class="fr-label">USDT Received</div>
+          <input id="frReceived" type="text" inputmode="decimal" placeholder="980" autocomplete="off">
+          <div class="fr-cur">USDT</div>
+        </div>
+      </div>
+      <div class="fr-result" id="frResult" style="display:none;">
+        <div class="fr-res-label">
+          <span>Unit Price</span>
+          <span class="fr-use">Tap to use</span>
+        </div>
+        <div class="fr-res-value" id="frResValue">—</div>
+        <div class="fr-res-formula" id="frResFormula">—</div>
+      </div>
+      <button class="fr-btn" id="frCalcBtn" disabled>Enter both values</button>
+      <div class="fr-close" id="frClose">Close</div>
+    </div>
+
+    <div class="result-wrap" id="resulttap">
+      <div class="result-label" id="resultlabel">Receive</div>
+      <div class="result"><span id="out">0.00</span><span class="unit" id="outunit">USDT</span></div>
+      <div class="result-sub" id="outsub">enter price &amp; amount</div>
+      <div class="copy-hint">tap to copy</div>
+    </div>
+    <div class="fields">
+      <div class="field">
+        <div class="flabel"><span>Unit price</span><span class="reset" id="resetrate">reset</span></div>
+        <input id="rate" type="text" inputmode="decimal" placeholder="1" autocomplete="off">
+        <div class="cur" id="ratecur">USD per 1 USDT</div>
+      </div>
+      <div class="field">
+        <div class="flabel"><span id="amtlabel">Amount send</span><span class="reset" id="resetamt">clear</span></div>
+        <input id="amt" type="text" inputmode="decimal" placeholder="500" autocomplete="off">
+        <div class="cur" id="amtcur">USD</div>
+      </div>
+    </div>
+    <div class="chips" id="chips">
+      <button class="chip" data-v="500">500</button>
+      <button class="chip" data-v="1000">1K</button>
+      <button class="chip" data-v="1500">1.5K</button>
+      <button class="chip" data-v="2000">2K</button>
+    </div>
+    <div class="scale">
+      <div class="stitle" id="scaletitle">Scale at current rate</div>
+      <div class="srow"><span id="s1label">500 USD</span><b id="s1">—</b></div>
+      <div class="srow"><span id="s2label">1,000 USD</span><b id="s2">—</b></div>
+      <div class="srow"><span id="s3label">1,500 USD</span><b id="s3">—</b></div>
+      <div class="srow"><span id="s4label">2,000 USD</span><b id="s4">—</b></div>
+    </div>
+  </div>
+
+<div class="toast" id="toast">Copied</div>
+
+<script>
+const DEFAULT_RATES = { usd: 1, iqd: 14 };
+const CURRENCY_CONFIG = {
+  usd: {
+    rateLabel: "USD per 1 USDT", amtLabel: "USD", placeholder: "500",
+    chips: [500, 1000, 1500, 2000],
+    chipLabels: ["500", "1K", "1.5K", "2K"],
+    scaleAmounts: [500, 1000, 1500, 2000],
+    scaleLabels: ["500 USD", "1,000 USD", "1,500 USD", "2,000 USD"]
+  },
+  iqd: {
+    rateLabel: "IQD per 1 USDT", amtLabel: "IQD", placeholder: "500,000",
+    chips: [500000, 1000000, 1500000, 2000000],
+    chipLabels: ["500K", "1M", "1.5M", "2M"],
+    scaleAmounts: [500000, 1000000, 1500000, 2000000],
+    scaleLabels: ["500,000 IQD", "1,000,000 IQD", "1,500,000 IQD", "2,000,000 IQD"]
+  }
+};
+
+// Mode config
+const MODE_CONFIG = {
+  send: {
+    resultLabel: "Receive",
+    outUnit: "USDT",
+    amtLabel: "Amount send",
+    amtCurLabel: "amtcur",
+    scaleTitle: "Scale at current rate",
+    calc: (rate, amt) => amt / rate,
+    subText: (amt, rate, currencyLabel) => fmt(amt, 0) + " " + currencyLabel + " ÷ " + fmt(rate, 2) + " " + currencyLabel + "/USDT",
+    scaleCalc: (rate, val) => val / rate,
+    scaleUnit: "USDT"
+  },
+  receive: {
+    resultLabel: "Send",
+    outUnit: "USD",
+    amtLabel: "Amount receive (USDT)",
+    amtCurLabel: "USDT",
+    scaleTitle: "Scale (USDT → " + "CURRENCY" + ")",
+    calc: (rate, amt) => amt * rate,
+    subText: (amt, rate, currencyLabel) => fmt(amt, 2) + " USDT × " + fmt(rate, 2) + " " + currencyLabel + "/USDT",
+    scaleCalc: (rate, val) => val * rate,
+    scaleUnit: "CURRENCY"
+  }
+};
+
+let currentCurrency = "usd";
+let currentMode = "send";
+const rateEl = document.getElementById("rate");
+const amtEl = document.getElementById("amt");
+
+// Find Rate elements
+const findRateToggle = document.getElementById("findRateToggle");
+const findRatePanel = document.getElementById("findRatePanel");
+const frPaid = document.getElementById("frPaid");
+const frReceived = document.getElementById("frReceived");
+const frResult = document.getElementById("frResult");
+const frResValue = document.getElementById("frResValue");
+const frResFormula = document.getElementById("frResFormula");
+const frCalcBtn = document.getElementById("frCalcBtn");
+const frClose = document.getElementById("frClose");
+const frPaidLabel = document.getElementById("frPaidLabel");
+const frPaidCur = document.getElementById("frPaidCur");
+
+// NO localStorage - data resets on every refresh
+// Initialize with defaults
+rateEl.value = DEFAULT_RATES[currentCurrency];
+amtEl.value = "";
+
+const num = (s) => { const v = parseFloat(String(s).replace(/,/g, "")); return isFinite(v) && v > 0 ? v : 0; };
+const fmt = (n, d) => n.toLocaleString("en-US", {minimumFractionDigits: d, maximumFractionDigits: d});
+
+function updateUI() {
+  const cfg = CURRENCY_CONFIG[currentCurrency];
+  const modeCfg = MODE_CONFIG[currentMode];
+
+  document.querySelectorAll(".tab").forEach(t => { t.classList.toggle("active", t.dataset.currency === currentCurrency); });
+  document.querySelectorAll(".mode-btn").forEach(b => { b.classList.toggle("active", b.dataset.mode === currentMode); });
+
+  document.getElementById("resultlabel").textContent = modeCfg.resultLabel;
+  document.getElementById("outunit").textContent = currentMode === "send" ? "USDT" : cfg.amtLabel;
+  document.getElementById("amtlabel").textContent = modeCfg.amtLabel;
+  document.getElementById("ratecur").textContent = cfg.rateLabel;
+  document.getElementById("amtcur").textContent = currentMode === "send" ? cfg.amtLabel : "USDT";
+
+  if (currentMode === "send") {
+    amtEl.placeholder = cfg.placeholder;
+  } else {
+    amtEl.placeholder = "100";
+  }
+
+  // Update Find Rate labels
+  frPaidLabel.textContent = "Amount Paid (" + cfg.amtLabel + ")";
+  frPaidCur.textContent = cfg.amtLabel;
+
+  const chipsContainer = document.getElementById("chips");
+  chipsContainer.innerHTML = "";
+  if (currentMode === "send") {
+    cfg.chips.forEach((val, i) => {
+      const btn = document.createElement("button");
+      btn.className = "chip"; btn.dataset.v = val; btn.textContent = cfg.chipLabels[i];
+      btn.addEventListener("click", () => { amtEl.value = val; render(); });
+      chipsContainer.appendChild(btn);
+    });
+  } else {
+    const receiveChips = [50, 100, 200, 500];
+    const receiveLabels = ["50", "100", "200", "500"];
+    receiveChips.forEach((val, i) => {
+      const btn = document.createElement("button");
+      btn.className = "chip"; btn.dataset.v = val; btn.textContent = receiveLabels[i];
+      btn.addEventListener("click", () => { amtEl.value = val; render(); });
+      chipsContainer.appendChild(btn);
+    });
+  }
+
+  const scaleTitle = document.getElementById("scaletitle");
+  if (currentMode === "send") {
+    scaleTitle.textContent = "Scale at current rate";
+    cfg.scaleLabels.forEach((label, i) => { document.getElementById("s" + (i+1) + "label").textContent = label; });
+  } else {
+    scaleTitle.textContent = "Scale (USDT → " + cfg.amtLabel + ")";
+    const receiveScaleLabels = ["50 USDT", "100 USDT", "200 USDT", "500 USDT"];
+    receiveScaleLabels.forEach((label, i) => { document.getElementById("s" + (i+1) + "label").textContent = label; });
+  }
+}
+
+function render() {
+  const r = num(rateEl.value), a = num(amtEl.value);
+  const out = document.getElementById("out"), sub = document.getElementById("outsub");
+  const cfg = CURRENCY_CONFIG[currentCurrency];
+  const modeCfg = MODE_CONFIG[currentMode];
+
+  // NO localStorage persistence - data clears on refresh
+
+  if (r > 0 && a > 0) {
+    const result = modeCfg.calc(r, a);
+    if (currentMode === "send") {
+      out.textContent = fmt(result, 2);
+      sub.textContent = modeCfg.subText(a, r, cfg.amtLabel);
+    } else {
+      out.textContent = fmt(result, currentCurrency === "usd" ? 2 : 0);
+      sub.textContent = modeCfg.subText(a, r, cfg.amtLabel);
+    }
+  } else {
+    out.textContent = currentMode === "send" ? "0.00" : "0";
+    sub.textContent = r > 0 ? "enter amount" : "enter price & amount";
+  }
+
+  if (currentMode === "send") {
+    cfg.scaleAmounts.forEach((val, i) => {
+      document.getElementById("s" + (i+1)).textContent = r > 0 ? fmt(val / r, 2) + " USDT" : "—";
+    });
+  } else {
+    const receiveScaleAmounts = [50, 100, 200, 500];
+    receiveScaleAmounts.forEach((val, i) => {
+      document.getElementById("s" + (i+1)).textContent = r > 0 ? fmt(val * r, currentCurrency === "usd" ? 2 : 0) + " " + cfg.amtLabel : "—";
+    });
+  }
+}
+
+function switchCurrency(curr) {
+  currentCurrency = curr;
+  rateEl.value = DEFAULT_RATES[curr];
+  amtEl.value = "";
+  updateUI(); render();
+}
+
+function switchMode(mode) {
+  currentMode = mode;
+  amtEl.value = "";
+  updateUI(); render();
+}
+
+function toast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  setTimeout(() => t.classList.remove("show"), 1200);
+}
+
+/* ========== UNIVERSAL COPY ENGINE ==========
+   Works across ALL platforms: iOS Safari, Android Chrome, 
+   desktop browsers, in-app webviews, and PWA contexts.
+   Uses a cascading fallback strategy for maximum compatibility.
+*/
+function doCopy() {
+  const outEl = document.getElementById("out");
+  const rawValue = outEl.textContent;
+
+  if (rawValue === "0.00" || rawValue === "0") return;
+
+  const cleanValue = rawValue.replace(/,/g, "");
+
+  // --- Strategy 1: Modern Clipboard API (works on HTTPS + permission) ---
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(cleanValue)
+      .then(() => {
+        showCopyFeedback();
+      })
+      .catch((err) => {
+        // Permission denied or API failed — fall through to legacy
+        copyFallback(cleanValue);
+      });
+    return;
+  }
+
+  // --- Strategy 2: Legacy execCommand (broadest compatibility) ---
+  copyFallback(cleanValue);
+}
+
+function copyFallback(text) {
+  // Create a hidden, selectable textarea
+  const ta = document.createElement("textarea");
+  ta.value = text;
+  ta.setAttribute("readonly", "");
+  ta.style.cssText = "position:fixed;top:-9999px;left:-9999px;opacity:0;pointer-events:none;";
+  document.body.appendChild(ta);
+
+  // Select the text using multiple methods for cross-platform reliability
+  ta.focus();
+  ta.select();
+  ta.setSelectionRange(0, ta.value.length); // iOS Safari needs this
+
+  let copied = false;
+  try {
+    copied = document.execCommand("copy");
+  } catch (e) {
+    copied = false;
+  }
+
+  document.body.removeChild(ta);
+
+  if (copied) {
+    showCopyFeedback();
+  } else {
+    // --- Strategy 3: iOS-specific workaround ---
+    // On iOS, execCommand often fails in standalone/PWA mode.
+    // We use a range selection on the actual visible element.
+    copyIOSFallback(text);
+  }
+}
+
+function copyIOSFallback(text) {
+  const outEl = document.getElementById("out");
+  const range = document.createRange();
+  const selection = window.getSelection();
+
+  range.selectNodeContents(outEl);
+  selection.removeAllRanges();
+  selection.addRange(range);
+
+  let copied = false;
+  try {
+    copied = document.execCommand("copy");
+  } catch (e) {
+    copied = false;
+  }
+
+  selection.removeAllRanges();
+
+  if (copied) {
+    showCopyFeedback();
+  } else {
+    // Last resort: show the value in a toast so user can manually copy
+    toast("Value: " + text);
+  }
+}
+
+function showCopyFeedback() {
+  const wrap = document.getElementById("resulttap");
+  wrap.classList.remove("copied");
+  void wrap.offsetWidth; // force reflow
+  wrap.classList.add("copied");
+  toast("Copied");
+}
+
+// ===== FIND RATE LOGIC =====
+function updateFindRate() {
+  const paid = num(frPaid.value);
+  const received = num(frReceived.value);
+  const cfg = CURRENCY_CONFIG[currentCurrency];
+
+  if (paid > 0 && received > 0) {
+    const rate = paid / received;
+    const decimals = currentCurrency === "usd" ? 4 : 2;
+    frResValue.textContent = fmt(rate, decimals) + " " + cfg.amtLabel + "/USDT";
+    frResFormula.textContent = fmt(paid, currentCurrency === "usd" ? 2 : 0) + " " + cfg.amtLabel + " ÷ " + fmt(received, 2) + " USDT";
+    frResult.style.display = "block";
+    frCalcBtn.textContent = "Use this rate";
+    frCalcBtn.disabled = false;
+  } else {
+    frResult.style.display = "none";
+    frCalcBtn.disabled = true;
+    if (paid === 0 && received === 0) {
+      frCalcBtn.textContent = "Enter both values";
+    } else if (paid === 0) {
+      frCalcBtn.textContent = "Enter amount paid";
+    } else {
+      frCalcBtn.textContent = "Enter USDT received";
+    }
+  }
+}
+
+function useFoundRate() {
+  const paid = num(frPaid.value);
+  const received = num(frReceived.value);
+  if (paid > 0 && received > 0) {
+    const rate = paid / received;
+    const decimals = currentCurrency === "usd" ? 4 : 2;
+    rateEl.value = rate.toFixed(decimals);
+    render();
+    findRatePanel.classList.remove("open");
+    toast("Rate applied");
+    // NO localStorage - rate also clears on refresh
+  }
+}
+
+findRateToggle.addEventListener("click", () => {
+  findRatePanel.classList.toggle("open");
+  if (findRatePanel.classList.contains("open")) {
+    frPaid.focus();
+  }
+});
+
+frClose.addEventListener("click", () => {
+  findRatePanel.classList.remove("open");
+});
+
+frPaid.addEventListener("input", updateFindRate);
+frReceived.addEventListener("input", updateFindRate);
+frCalcBtn.addEventListener("click", useFoundRate);
+frResult.addEventListener("click", useFoundRate);
+
+// ===== MAIN EVENT LISTENERS =====
+rateEl.addEventListener("input", render);
+amtEl.addEventListener("input", render);
+document.getElementById("resetrate").addEventListener("click", () => { rateEl.value = DEFAULT_RATES[currentCurrency]; render(); });
+document.getElementById("resetamt").addEventListener("click", () => { amtEl.value = ""; render(); });
+document.querySelectorAll(".tab").forEach(t => t.addEventListener("click", () => switchCurrency(t.dataset.currency)));
+document.querySelectorAll(".mode-btn").forEach(b => b.addEventListener("click", () => switchMode(b.dataset.mode)));
+
+// Unified tap handler — works for click, touch, and pointer events
+const resultTap = document.getElementById("resulttap");
+
+// Prevent 300ms delay on mobile by using touchend
+let touchStarted = false;
+resultTap.addEventListener("touchstart", function(e) {
+  touchStarted = true;
+}, { passive: true });
+
+resultTap.addEventListener("touchend", function(e) {
+  if (touchStarted) {
+    e.preventDefault();
+    doCopy();
+    touchStarted = false;
+  }
+}, { passive: false });
+
+resultTap.addEventListener("click", function(e) {
+  // Only fire if touch didn't already handle it
+  if (!touchStarted) {
+    doCopy();
+  }
+});
+
+updateUI(); render();
+</script>
+</body>
+</html>

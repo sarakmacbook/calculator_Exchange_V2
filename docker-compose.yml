@@ -1,0 +1,11 @@
+version: '3.8'
+
+services:
+  iqd-usdt-calc:
+    image: nginx:alpine
+    container_name: iqd-usdt-calc
+    ports:
+      - "80:80"
+    volumes:
+      - ./index.html:/usr/share/nginx/html/index.html:ro
+    restart: unless-stopped
