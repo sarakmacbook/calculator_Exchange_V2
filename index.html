@@ -36,7 +36,7 @@
     }
     .app-frame {
       width:100%;
-      max-width:420px;
+      max-width:900px;
       max-height: calc(100vh - 40px);
       max-height: calc(100dvh - 40px);
       background:#000;
@@ -45,13 +45,96 @@
       box-shadow:0 0 60px rgba(197,240,0,0.08);
       overflow: hidden;
       display:flex;
-      flex-direction:column;
-      padding:calc(env(safe-area-inset-top) + 14px) 20px calc(env(safe-area-inset-bottom) + 14px);
+      flex-direction:row;
+      padding:calc(env(safe-area-inset-top) + 20px) 28px calc(env(safe-area-inset-bottom) + 20px);
+    }
+    .main-content {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding-right: 16px;
+    }
+    .side-panel {
+      width: 280px;
+      border-left: 1px solid #1a1a1a;
+      padding-left: 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      padding-top: 8px;
+      flex-shrink: 0;
+    }
+    .side-panel .scale {
+      padding-top: 0;
+      margin-top: 0;
+    }
+    .side-panel .stitle {
+      font-size: 12px;
+      margin-bottom: 10px;
+    }
+    .side-panel .srow#profitRow {
+      padding: 14px 16px;
+      flex-direction: column;
+      gap: 6px;
+      align-items: flex-start;
+      border-radius: 16px;
+    }
+    .side-panel .srow#profitRow span#s1label,
+    .side-panel .srow#profitRow span#s1mid,
+    .side-panel .srow#profitRow b {
+      font-size: 15px;
+    }
+    .side-panel .pct-btn {
+      align-self: flex-end;
+      margin-left: 0;
+      margin-top: 6px;
+      font-size: 13px;
+      padding: 4px 10px;
+    }
+    .side-panel .pct-panel {
+      margin-top: 10px;
+      padding: 14px 16px;
+      border-radius: 16px;
+    }
+    .side-panel .pct-result-block {
+      margin-bottom: 14px;
+      padding-bottom: 14px;
+    }
+    .side-panel .pct-result-block .pct-label {
+      font-size: 11px;
+    }
+    .side-panel .pct-result {
+      font-size: 36px;
+    }
+    .side-panel .pct-row {
+      flex-direction: row;
+      gap: 12px;
+    }
+    .side-panel .pct-field:nth-child(2) { flex: 1; }
+    .side-panel .pct-field input {
+      font-size: 20px;
+      padding: 12px 10px;
+    }
+    .side-panel .pct-val {
+      font-size: 18px;
+    }
+    .side-panel .pct-label {
+      font-size: 11px;
+    }
+    .side-panel .pct-close {
+      font-size: 12px;
+      margin-top: 10px;
     }
   }
   @media (min-width: 1024px) {
     .app-frame {
-      max-width:460px;
+      max-width:960px;
+    }
+    .side-panel {
+      width: 300px;
     }
   }
   @media (max-width: 767px) {
@@ -59,6 +142,19 @@
       width:100%; height:100%; display:flex; flex-direction:column;
       overflow-y: auto;
       -webkit-overflow-scrolling: touch;
+      padding-bottom: 60px;
+    }
+    .main-content {
+      display: flex;
+      flex-direction: column;
+    }
+    .side-panel {
+      width: 100%;
+      border-left: none;
+      border-top: 1px solid #1a1a1a;
+      padding-left: 0;
+      padding-top: 12px;
+      margin-top: 8px;
     }
   }
 
@@ -124,13 +220,17 @@
   .copy-hint { margin-top:2px; font-size:10px; color:#3d3d3d; }
 
   @media (min-width: 768px) {
-    .result { font-size:48px; }
-    .result .unit { font-size:16px; }
-    .result-wrap { margin-top:14px; }
-    .mode-switch { margin-top:10px; }
-    .mode-switch .mode-btn { font-size:13px; padding:7px 0; }
-    .tabs { margin-top:8px; }
-    .tab { padding:9px 0; }
+    .result { font-size:56px; }
+    .result .unit { font-size:18px; }
+    .result-wrap { margin-top:18px; }
+    .result-label { font-size:14px; }
+    .result-sub { font-size:13px; }
+    .copy-hint { font-size:11px; }
+    .mode-switch { margin-top:14px; }
+    .mode-switch .mode-btn { font-size:14px; padding:9px 0; }
+    .tabs { margin-top:12px; }
+    .tab { padding:11px 0; font-size:15px; }
+    .label { font-size:14px; }
   }
 
   .fields { margin-top:16px; display:flex; flex-direction:column; gap:8px; }
@@ -146,11 +246,12 @@
   .field .cur { font-size:11px; color:#5a5a5a; font-weight:600; margin-top:1px; }
 
   @media (min-width: 768px) {
-    .fields { margin-top:14px; gap:8px; }
-    .field { padding:10px 16px; }
-    .field input { font-size:24px; }
-    .field .flabel { font-size:11px; }
-    .field .flabel .reset { font-size:11px; }
+    .fields { margin-top:18px; gap:10px; }
+    .field { padding:14px 20px; border-radius:18px; }
+    .field input { font-size:28px; }
+    .field .flabel { font-size:12px; }
+    .field .flabel .reset { font-size:12px; }
+    .field .cur { font-size:12px; }
   }
 
   .chips { display:flex; gap:6px; margin-top:8px; }
@@ -161,17 +262,153 @@
   .chip:active { background:#2a2a2a; }
 
   @media (min-width: 768px) {
-    .chips { margin-top:8px; }
-    .chip { padding:8px 0; font-size:13px; }
+    .chips { margin-top:12px; }
+    .chip { padding:10px 0; font-size:14px; border-radius:14px; }
   }
 
-  .scale { margin-top:auto; padding-top:12px; }
+  .scale { margin-top:auto; padding-top:16px; padding-bottom:28px; }
   .scale .srow {
     display:flex; justify-content:space-between; padding:7px 4px;
     border-bottom:1px solid #161616; font-size:13px; color:#909090;
     font-variant-numeric:tabular-nums;
   }
   .scale .srow b { color:#c5f000; font-weight:700; }
+  .scale .srow span:nth-child(2) { color:#5a5a5a; font-size:12px; }
+  .scale .srow b.profit-pos { color:#c5f000; }
+  .scale .srow b.profit-neg { color:#ff4444; }
+
+  .scale .srow#profitRow {
+    background: #0f0f0f;
+    border: 1px solid #1a1a1a;
+    border-radius: 14px;
+    padding: 12px 14px;
+    margin-top: 8px;
+    align-items: center;
+  }
+  .scale .srow#profitRow b {
+    font-size: 15px;
+    text-shadow: 0 0 8px rgba(197,240,0,0.15);
+  }
+  .scale .srow#profitRow b.profit-pos {
+    color: #c5f000;
+    text-shadow: 0 0 10px rgba(197,240,0,0.25);
+  }
+  .scale .srow#profitRow b.profit-neg {
+    color: #ff4444;
+    text-shadow: 0 0 10px rgba(255,68,68,0.25);
+  }
+  .scale .srow#profitRow span#s1label {
+    color: #fff;
+    font-weight: 600;
+    font-size: 13px;
+  }
+  .scale .srow#profitRow span#s1mid {
+    color: #5a5a5a;
+    font-size: 12px;
+  }
+
+  .pct-btn {
+    background: transparent;
+    border: 1px solid #3d3d3d;
+    border-radius: 8px;
+    color: #c5f000;
+    font-size: 11px;
+    font-weight: 700;
+    font-family: inherit;
+    padding: 2px 8px;
+    margin-left: 6px;
+    cursor: pointer;
+    transition: all 0.15s;
+    flex-shrink: 0;
+  }
+  .pct-btn:hover { border-color: #c5f000; }
+  .pct-btn:active { opacity: 0.7; }
+
+  .pct-panel {
+    margin-top: 10px;
+    background: #0f0f0f;
+    border: 1px solid #1a1a1a;
+    border-radius: 14px;
+    padding: 14px 16px;
+    animation: slideDown 0.2s ease;
+  }
+  .pct-result-block {
+    text-align: center;
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #1a1a1a;
+  }
+  .pct-result-block .pct-label {
+    font-size: 10px;
+    color: #5a5a5a;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+  }
+  .pct-result {
+    font-size: 32px;
+    font-weight: 700;
+    color: #c5f000;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.2;
+    word-break: break-all;
+  }
+  .pct-row {
+    display: flex;
+    gap: 12px;
+    align-items: flex-end;
+  }
+  .pct-field-input { flex: 1.2; }
+  .pct-field-base { flex: 1; text-align: right; }
+  .pct-field {
+    flex: 1;
+  }
+  .pct-field:nth-child(2) { flex: 0.7; }
+  .pct-label {
+    font-size: 10px;
+    color: #5a5a5a;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    margin-bottom: 4px;
+  }
+  .pct-val {
+    font-size: 16px;
+    font-weight: 700;
+    color: #fff;
+    font-variant-numeric: tabular-nums;
+  }
+  .pct-field input {
+    width: 100%;
+    background: #181818;
+    border: none;
+    border-radius: 10px;
+    outline: none;
+    color: #c5f000;
+    font-size: 18px;
+    font-weight: 700;
+    font-family: inherit;
+    padding: 10px 8px;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+    -webkit-appearance: none;
+    appearance: none;
+    min-height: 44px;
+  }
+  .pct-field input::placeholder { color: #3d3d3d; font-weight: 400; }
+  .pct-close {
+    text-align: center;
+    margin-top: 10px;
+    font-size: 12px;
+    color: #3d3d3d;
+    cursor: pointer;
+    padding: 8px 0;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+  }
+  .pct-close:active { color: #5a5a5a; background: #181818; }
   .scale .stitle { font-size:10px; color:#5a5a5a; text-transform:uppercase; letter-spacing:.5px; margin-bottom:3px; }
 
   @media (min-width: 768px) {
@@ -283,6 +520,97 @@
   }
   .find-rate-panel .fr-close:active { color:#5a5a5a; }
 
+  /* === PROFIT CALCULATOR PANEL === */
+  .profit-toggle {
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+    margin-top:8px;
+    padding:6px;
+    background:transparent;
+    border:1px dashed #2a2a2a;
+    border-radius:12px;
+    color:#5a5a5a;
+    font-size:12px;
+    font-weight:600;
+    font-family:inherit;
+    cursor:pointer;
+    transition: all 0.2s;
+    width:100%;
+  }
+  .profit-toggle:hover { border-color:#c5f000; color:#c5f000; }
+  .profit-toggle svg { width:14px; height:14px; fill:currentColor; }
+
+  .profit-panel {
+    margin-top:8px;
+    background:#0f0f0f;
+    border:1px solid #1a1a1a;
+    border-radius:16px;
+    padding:10px 14px;
+    display:none;
+    animation: slideDown 0.25s ease;
+  }
+  .profit-panel.open { display:block; }
+
+  .profit-panel .pr-title {
+    font-size:12px; color:#c5f000; font-weight:700;
+    text-transform:uppercase; letter-spacing:0.5px;
+    margin-bottom:8px; display:flex; align-items:center; gap:6px;
+  }
+  .profit-panel .pr-title svg { width:14px; height:14px; fill:#c5f000; }
+
+  .profit-panel .pr-row {
+    display:flex; gap:8px; margin-bottom:6px;
+  }
+  .profit-panel .pr-field {
+    flex:1; background:#181818; border-radius:12px; padding:8px 10px;
+  }
+  .profit-panel .pr-field .pr-label {
+    font-size:10px; color:#5a5a5a; margin-bottom:2px; text-transform:uppercase; letter-spacing:0.3px;
+  }
+  .profit-panel .pr-field input {
+    width:100%; background:transparent; border:none; outline:none; color:#fff;
+    font-size:16px; font-weight:700; font-family:inherit;
+    font-variant-numeric:tabular-nums; user-select:text; -webkit-user-select:text;
+  }
+  .profit-panel .pr-field input::placeholder { color:#3d3d3d; font-weight:400; }
+  .profit-panel .pr-field .pr-cur {
+    font-size:10px; color:#3d3d3d; margin-top:1px;
+  }
+
+  .profit-panel .pr-result {
+    background:#181818; border-radius:12px; padding:8px 10px;
+    margin-bottom:8px;
+  }
+  .profit-panel .pr-result .pr-res-row {
+    display:flex; justify-content:space-between; align-items:center;
+    font-size:12px; color:#909090; margin-bottom:3px;
+  }
+  .profit-panel .pr-result .pr-res-row b {
+    color:#fff; font-weight:700; font-variant-numeric:tabular-nums;
+  }
+  .profit-panel .pr-result .pr-res-row .pr-profit {
+    color:#c5f000;
+  }
+  .profit-panel .pr-result .pr-res-row .pr-loss {
+    color:#ff4444;
+  }
+
+  .profit-panel .pr-btn {
+    width:100%; background:#c5f000; color:#000; border:none; border-radius:12px;
+    padding:8px 0; font-size:13px; font-weight:700; font-family:inherit;
+    cursor:pointer; transition: opacity 0.15s;
+  }
+  .profit-panel .pr-btn:active { opacity:0.8; }
+  .profit-panel .pr-btn:disabled { background:#2a2a2a; color:#5a5a5a; cursor:not-allowed; }
+
+  .profit-panel .pr-close {
+    text-align:center; margin-top:6px;
+    font-size:11px; color:#3d3d3d; cursor:pointer;
+  }
+  .profit-panel .pr-close:active { color:#5a5a5a; }
+
   @media (max-height: 500px) and (orientation: landscape) {
     .result-wrap { margin-top:10px; }
     .result { font-size:28px; }
@@ -297,6 +625,9 @@
     .find-rate-panel { padding:8px 10px; }
     .find-rate-panel .fr-field input { font-size:14px; }
     .find-rate-panel .fr-result .fr-res-value { font-size:16px; }
+    .profit-panel { padding:8px 10px; }
+    .profit-panel .pr-field input { font-size:14px; }
+    .profit-panel .pr-result .pr-res-value { font-size:16px; }
   }
 
   @media (max-width: 375px) {
@@ -305,18 +636,22 @@
     .field input { font-size:22px; }
     .chip { font-size:12px; padding:9px 0; }
     .find-rate-panel .fr-field input { font-size:16px; }
+    .profit-panel .pr-field input { font-size:16px; }
   }
 
   @media (min-width: 768px) and (max-width: 1023px) {
     .app-frame {
-      max-width:400px;
+      max-width:840px;
     }
   }
 
   @media (min-width: 1400px) {
     .app-frame {
-      max-width:440px;
+      max-width:1000px;
       border-radius:28px;
+    }
+    .side-panel {
+      width: 320px;
     }
   }
 </style>
@@ -325,6 +660,7 @@
 </head>
 <body>
   <div class="app-frame">
+    <div class="main-content">
     <div class="label">Calculator</div>
     <div class="tabs">
       <button class="tab active" data-currency="usd">USD</button>
@@ -374,6 +710,57 @@
       <div class="fr-close" id="frClose">Close</div>
     </div>
 
+    <!-- Profit Toggle -->
+    <button class="profit-toggle" id="profitToggle">
+      <svg viewBox="0 0 24 24"><path d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6z"/></svg>
+      Profit Calculator
+    </button>
+
+    <!-- Profit Panel -->
+    <div class="profit-panel" id="profitPanel">
+      <div class="pr-title">
+        <svg viewBox="0 0 24 24"><path d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6z"/></svg>
+        Profit Calculator
+      </div>
+      <div class="pr-row">
+        <div class="pr-field">
+          <div class="pr-label">Buy Price</div>
+          <input id="prBuy" type="text" inputmode="decimal" placeholder="1.00" autocomplete="off">
+          <div class="pr-cur" id="prBuyCur">USD/USDT</div>
+        </div>
+        <div class="pr-field">
+          <div class="pr-label">Sell Price</div>
+          <input id="prSell" type="text" inputmode="decimal" placeholder="1.05" autocomplete="off">
+          <div class="pr-cur" id="prSellCur">USD/USDT</div>
+        </div>
+      </div>
+      <div class="pr-field" style="margin-bottom:6px;">
+        <div class="pr-label">Amount (USDT)</div>
+        <input id="prAmt" type="text" inputmode="decimal" placeholder="1000" autocomplete="off">
+        <div class="pr-cur">USDT</div>
+      </div>
+      <div class="pr-result" id="prResult" style="display:none;">
+        <div class="pr-res-row">
+          <span>Cost</span>
+          <b id="prCost">—</b>
+        </div>
+        <div class="pr-res-row">
+          <span>Revenue</span>
+          <b id="prRevenue">—</b>
+        </div>
+        <div class="pr-res-row" style="border-top:1px solid #2a2a2a; margin-top:4px; padding-top:6px;">
+          <span>Net Profit</span>
+          <b id="prProfit" class="pr-profit">—</b>
+        </div>
+        <div class="pr-res-row">
+          <span>Profit %</span>
+          <b id="prPct" class="pr-profit">—</b>
+        </div>
+      </div>
+      <button class="pr-btn" id="prCalcBtn" disabled>Enter all values</button>
+      <div class="pr-close" id="prClose">Close</div>
+    </div>
+
     <div class="result-wrap" id="resulttap">
       <div class="result-label" id="resultlabel">Receive</div>
       <div class="result"><span id="out">0.00</span><span class="unit" id="outunit">USDT</span></div>
@@ -398,14 +785,36 @@
       <button class="chip" data-v="1500">1.5K</button>
       <button class="chip" data-v="2000">2K</button>
     </div>
+    </div><!-- /main-content -->
+    <div class="side-panel">
     <div class="scale">
-      <div class="stitle" id="scaletitle">Scale at current rate</div>
-      <div class="srow"><span id="s1label">500 USD</span><b id="s1">—</b></div>
-      <div class="srow"><span id="s2label">1,000 USD</span><b id="s2">—</b></div>
-      <div class="srow"><span id="s3label">1,500 USD</span><b id="s3">—</b></div>
-      <div class="srow"><span id="s4label">2,000 USD</span><b id="s4">—</b></div>
+      <div class="stitle" id="scaletitle">Profit Analysis</div>
+      <div class="pct-panel" id="pctPanel" style="display:none;">
+        <div class="pct-result-block">
+          <div class="pct-label">Result</div>
+          <div class="pct-result" id="pctResult">—</div>
+        </div>
+        <div class="pct-row">
+          <div class="pct-field pct-field-input">
+            <div class="pct-label">Percentage %</div>
+            <input id="pctInput" type="text" inputmode="decimal" placeholder="40" autocomplete="off">
+          </div>
+          <div class="pct-field pct-field-base">
+            <div class="pct-label">Base Profit</div>
+            <div class="pct-val" id="pctBase">—</div>
+          </div>
+        </div>
+        <div class="pct-close" id="pctClose">Close</div>
+      </div>
+      <div class="srow" id="profitRow" style="display:none;">
+        <span id="s1label">—</span>
+        <span id="s1mid">→</span>
+        <b id="s1">—</b>
+        <button class="pct-btn" id="pctBtn" title="Find % of profit">%</button>
+      </div>
     </div>
-  </div>
+  
+    </div><!-- /side-panel --></div>
 
 <div class="toast" id="toast">Copied</div>
 
@@ -472,6 +881,22 @@ const frClose = document.getElementById("frClose");
 const frPaidLabel = document.getElementById("frPaidLabel");
 const frPaidCur = document.getElementById("frPaidCur");
 
+// Profit Calculator elements
+const profitToggle = document.getElementById("profitToggle");
+const profitPanel = document.getElementById("profitPanel");
+const prBuy = document.getElementById("prBuy");
+const prSell = document.getElementById("prSell");
+const prAmt = document.getElementById("prAmt");
+const prResult = document.getElementById("prResult");
+const prCost = document.getElementById("prCost");
+const prRevenue = document.getElementById("prRevenue");
+const prProfit = document.getElementById("prProfit");
+const prPct = document.getElementById("prPct");
+const prCalcBtn = document.getElementById("prCalcBtn");
+const prClose = document.getElementById("prClose");
+const prBuyCur = document.getElementById("prBuyCur");
+const prSellCur = document.getElementById("prSellCur");
+
 // NO localStorage - data resets on every refresh
 // Initialize with defaults
 rateEl.value = DEFAULT_RATES[currentCurrency];
@@ -503,6 +928,10 @@ function updateUI() {
   frPaidLabel.textContent = "Amount Paid (" + cfg.amtLabel + ")";
   frPaidCur.textContent = cfg.amtLabel;
 
+  // Update Profit Calculator labels
+  prBuyCur.textContent = cfg.amtLabel + "/USDT";
+  prSellCur.textContent = cfg.amtLabel + "/USDT";
+
   const chipsContainer = document.getElementById("chips");
   chipsContainer.innerHTML = "";
   if (currentMode === "send") {
@@ -525,12 +954,9 @@ function updateUI() {
 
   const scaleTitle = document.getElementById("scaletitle");
   if (currentMode === "send") {
-    scaleTitle.textContent = "Scale at current rate";
-    cfg.scaleLabels.forEach((label, i) => { document.getElementById("s" + (i+1) + "label").textContent = label; });
+    scaleTitle.textContent = "Amount → USDT = Profit";
   } else {
-    scaleTitle.textContent = "Scale (USDT → " + cfg.amtLabel + ")";
-    const receiveScaleLabels = ["50 USDT", "100 USDT", "200 USDT", "500 USDT"];
-    receiveScaleLabels.forEach((label, i) => { document.getElementById("s" + (i+1) + "label").textContent = label; });
+    scaleTitle.textContent = "USDT → " + cfg.amtLabel + " = Profit";
   }
 }
 
@@ -556,15 +982,41 @@ function render() {
     sub.textContent = r > 0 ? "enter amount" : "enter price & amount";
   }
 
+  const profitRow = document.getElementById("profitRow");
+  const s1label = document.getElementById("s1label");
+  const s1mid = document.getElementById("s1mid");
+  const s1 = document.getElementById("s1");
+
   if (currentMode === "send") {
-    cfg.scaleAmounts.forEach((val, i) => {
-      document.getElementById("s" + (i+1)).textContent = r > 0 ? fmt(val / r, 2) + " USDT" : "—";
-    });
+    const val = num(amtEl.value) || 0;
+    const received = r > 0 ? val / r : 0;
+    const profit = r > 0 ? val - received : 0;
+    if (r > 0 && val > 0) {
+      s1label.textContent = fmt(val, 0) + " " + cfg.amtLabel;
+      s1mid.textContent = fmt(received, 2) + " USDT";
+      s1.textContent = (profit >= 0 ? "+" : "") + fmt(profit, 2) + " " + cfg.amtLabel;
+      s1.className = profit >= 0 ? "profit-pos" : "profit-neg";
+      currentProfit = profit;
+      updatePctBase();
+      profitRow.style.display = "flex";
+    } else {
+      profitRow.style.display = "none";
+    }
   } else {
-    const receiveScaleAmounts = [50, 100, 200, 500];
-    receiveScaleAmounts.forEach((val, i) => {
-      document.getElementById("s" + (i+1)).textContent = r > 0 ? fmt(val * r, currentCurrency === "usd" ? 2 : 0) + " " + cfg.amtLabel : "—";
-    });
+    const val = num(amtEl.value) || 0;
+    const sent = r > 0 ? val * r : 0;
+    const profit = r > 0 ? sent - val : 0;
+    if (r > 0 && val > 0) {
+      s1label.textContent = fmt(val, 2) + " USDT";
+      s1mid.textContent = fmt(sent, currentCurrency === "usd" ? 2 : 0) + " " + cfg.amtLabel;
+      s1.textContent = (profit >= 0 ? "+" : "") + fmt(profit, currentCurrency === "usd" ? 2 : 0) + " " + cfg.amtLabel;
+      s1.className = profit >= 0 ? "profit-pos" : "profit-neg";
+      currentProfit = profit;
+      updatePctBase();
+      profitRow.style.display = "flex";
+    } else {
+      profitRow.style.display = "none";
+    }
   }
 }
 
@@ -572,13 +1024,99 @@ function switchCurrency(curr) {
   currentCurrency = curr;
   rateEl.value = DEFAULT_RATES[curr];
   amtEl.value = "";
-  updateUI(); render();
+  // ===== PERCENTAGE OF PROFIT =====
+const pctBtn = document.getElementById("pctBtn");
+const pctPanel = document.getElementById("pctPanel");
+const pctInput = document.getElementById("pctInput");
+const pctBase = document.getElementById("pctBase");
+const pctResult = document.getElementById("pctResult");
+const pctClose = document.getElementById("pctClose");
+
+let currentProfit = 0;
+
+pctBtn.addEventListener("click", () => {
+  pctPanel.style.display = pctPanel.style.display === "none" ? "block" : "none";
+  if (pctPanel.style.display === "block") {
+    pctInput.focus();
+    calcPct();
+  }
+});
+
+pctClose.addEventListener("click", () => {
+  pctPanel.style.display = "none";
+});
+
+pctInput.addEventListener("input", calcPct);
+
+function calcPct() {
+  const pct = num(pctInput.value);
+  const cfg = CURRENCY_CONFIG[currentCurrency];
+  if (pct > 0 && currentProfit !== 0) {
+    const result = currentProfit * (pct / 100);
+    const dec = currentCurrency === "usd" ? 2 : 0;
+    pctResult.textContent = fmt(result, dec) + " " + cfg.amtLabel;
+  } else {
+    pctResult.textContent = "—";
+  }
+}
+
+function updatePctBase() {
+  const cfg = CURRENCY_CONFIG[currentCurrency];
+  const dec = currentCurrency === "usd" ? 2 : 0;
+  pctBase.textContent = (currentProfit >= 0 ? "+" : "") + fmt(currentProfit, dec) + " " + cfg.amtLabel;
+  calcPct();
+}
+
+updateUI(); render();
 }
 
 function switchMode(mode) {
   currentMode = mode;
   amtEl.value = "";
-  updateUI(); render();
+  // ===== PERCENTAGE OF PROFIT =====
+const pctBtn = document.getElementById("pctBtn");
+const pctPanel = document.getElementById("pctPanel");
+const pctInput = document.getElementById("pctInput");
+const pctBase = document.getElementById("pctBase");
+const pctResult = document.getElementById("pctResult");
+const pctClose = document.getElementById("pctClose");
+
+let currentProfit = 0;
+
+pctBtn.addEventListener("click", () => {
+  pctPanel.style.display = pctPanel.style.display === "none" ? "block" : "none";
+  if (pctPanel.style.display === "block") {
+    pctInput.focus();
+    calcPct();
+  }
+});
+
+pctClose.addEventListener("click", () => {
+  pctPanel.style.display = "none";
+});
+
+pctInput.addEventListener("input", calcPct);
+
+function calcPct() {
+  const pct = num(pctInput.value);
+  const cfg = CURRENCY_CONFIG[currentCurrency];
+  if (pct > 0 && currentProfit !== 0) {
+    const result = currentProfit * (pct / 100);
+    const dec = currentCurrency === "usd" ? 2 : 0;
+    pctResult.textContent = fmt(result, dec) + " " + cfg.amtLabel;
+  } else {
+    pctResult.textContent = "—";
+  }
+}
+
+function updatePctBase() {
+  const cfg = CURRENCY_CONFIG[currentCurrency];
+  const dec = currentCurrency === "usd" ? 2 : 0;
+  pctBase.textContent = (currentProfit >= 0 ? "+" : "") + fmt(currentProfit, dec) + " " + cfg.amtLabel;
+  calcPct();
+}
+
+updateUI(); render();
 }
 
 function toast(msg) {
@@ -725,6 +1263,49 @@ function useFoundRate() {
   }
 }
 
+// ===== PROFIT CALCULATOR LOGIC =====
+function calcProfit() {
+  const buy = num(prBuy.value);
+  const sell = num(prSell.value);
+  const amt = num(prAmt.value);
+  const cfg = CURRENCY_CONFIG[currentCurrency];
+
+  if (buy > 0 && sell > 0 && amt > 0) {
+    const cost = buy * amt;
+    const revenue = sell * amt;
+    const profit = revenue - cost;
+    const pct = (profit / cost) * 100;
+
+    const curLabel = cfg.amtLabel;
+    const dec = currentCurrency === "usd" ? 2 : 0;
+
+    prCost.textContent = fmt(cost, dec) + " " + curLabel;
+    prRevenue.textContent = fmt(revenue, dec) + " " + curLabel;
+    prProfit.textContent = (profit >= 0 ? "+" : "") + fmt(profit, dec) + " " + curLabel;
+    prPct.textContent = (profit >= 0 ? "+" : "") + fmt(pct, 2) + "%";
+
+    prProfit.className = profit >= 0 ? "pr-profit" : "pr-loss";
+    prPct.className = profit >= 0 ? "pr-profit" : "pr-loss";
+
+    prResult.style.display = "block";
+    prCalcBtn.textContent = "Reset";
+    prCalcBtn.disabled = false;
+  } else {
+    prResult.style.display = "none";
+    prCalcBtn.disabled = true;
+    prCalcBtn.textContent = "Enter all values";
+  }
+}
+
+function resetProfit() {
+  prBuy.value = "";
+  prSell.value = "";
+  prAmt.value = "";
+  prResult.style.display = "none";
+  prCalcBtn.textContent = "Enter all values";
+  prCalcBtn.disabled = true;
+}
+
 findRateToggle.addEventListener("click", () => {
   findRatePanel.classList.toggle("open");
   if (findRatePanel.classList.contains("open")) {
@@ -740,6 +1321,27 @@ frPaid.addEventListener("input", updateFindRate);
 frReceived.addEventListener("input", updateFindRate);
 frCalcBtn.addEventListener("click", useFoundRate);
 frResult.addEventListener("click", useFoundRate);
+
+profitToggle.addEventListener("click", () => {
+  profitPanel.classList.toggle("open");
+  if (profitPanel.classList.contains("open")) {
+    prBuy.focus();
+  }
+});
+
+prClose.addEventListener("click", () => {
+  profitPanel.classList.remove("open");
+});
+
+prBuy.addEventListener("input", calcProfit);
+prSell.addEventListener("input", calcProfit);
+prAmt.addEventListener("input", calcProfit);
+
+prCalcBtn.addEventListener("click", () => {
+  if (prCalcBtn.textContent === "Reset") {
+    resetProfit();
+  }
+});
 
 // ===== MAIN EVENT LISTENERS =====
 rateEl.addEventListener("input", render);
@@ -772,6 +1374,49 @@ resultTap.addEventListener("click", function(e) {
     doCopy();
   }
 });
+
+// ===== PERCENTAGE OF PROFIT =====
+const pctBtn = document.getElementById("pctBtn");
+const pctPanel = document.getElementById("pctPanel");
+const pctInput = document.getElementById("pctInput");
+const pctBase = document.getElementById("pctBase");
+const pctResult = document.getElementById("pctResult");
+const pctClose = document.getElementById("pctClose");
+
+let currentProfit = 0;
+
+pctBtn.addEventListener("click", () => {
+  pctPanel.style.display = pctPanel.style.display === "none" ? "block" : "none";
+  if (pctPanel.style.display === "block") {
+    pctInput.focus();
+    calcPct();
+  }
+});
+
+pctClose.addEventListener("click", () => {
+  pctPanel.style.display = "none";
+});
+
+pctInput.addEventListener("input", calcPct);
+
+function calcPct() {
+  const pct = num(pctInput.value);
+  const cfg = CURRENCY_CONFIG[currentCurrency];
+  if (pct > 0 && currentProfit !== 0) {
+    const result = currentProfit * (pct / 100);
+    const dec = currentCurrency === "usd" ? 2 : 0;
+    pctResult.textContent = fmt(result, dec) + " " + cfg.amtLabel;
+  } else {
+    pctResult.textContent = "—";
+  }
+}
+
+function updatePctBase() {
+  const cfg = CURRENCY_CONFIG[currentCurrency];
+  const dec = currentCurrency === "usd" ? 2 : 0;
+  pctBase.textContent = (currentProfit >= 0 ? "+" : "") + fmt(currentProfit, dec) + " " + cfg.amtLabel;
+  calcPct();
+}
 
 updateUI(); render();
 </script>
