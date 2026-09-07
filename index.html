@@ -214,47 +214,16 @@
   }
   .result-wrap.holding .result-label { color:#c5f000; }
   .result-wrap .result, .result-wrap .result-sub, .result-wrap .result-label { transition: transform 0.2s; }
-  .result-wrap.copied { animation: pop 0.3s ease; }
-  @keyframes pop {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.05); }
-    100% { transform: scale(1); }
-  }
   .result-label { font-size:13px; color:#c5f000; font-weight:600; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px; }
   .result { font-size:42px; font-weight:700; line-height:1; letter-spacing:-1px; font-variant-numeric:tabular-nums; }
   .result .unit { font-size:16px; font-weight:600; color:#909090; letter-spacing:0; margin-left:4px; }
   .result-sub { margin-top:4px; font-size:12px; color:#5a5a5a; font-variant-numeric:tabular-nums; }
   .copy-hint { margin-top:2px; font-size:10px; color:#3d3d3d; }
 
-  /* === SCREENSHOT (HIDE PROFIT) BUTTON === */
-  .shot-btn {
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    gap:6px;
-    margin-top:8px;
-    padding:9px 6px;
-    background:transparent;
-    border:1px dashed #2a2a2a;
-    border-radius:12px;
-    color:#c5f000;
-    font-size:12px;
-    font-weight:700;
-    font-family:inherit;
-    cursor:pointer;
-    transition: all 0.2s;
-    width:100%;
-  }
-  .shot-btn:hover { border-color:#c5f000; background:rgba(197,240,0,0.06); }
-  .shot-btn:active { opacity:0.7; }
-  .shot-btn:disabled { opacity:0.5; cursor:wait; }
-  .shot-btn svg { width:14px; height:14px; fill:currentColor; flex-shrink:0; }
-
   /* Elements hidden while capturing the share screenshot */
   body.shot-mode .side-panel,
   body.shot-mode #profitToggle,
   body.shot-mode #profitPanel,
-  body.shot-mode #shotBtn,
   body.shot-mode .copy-hint,
   body.shot-mode .toast {
     display:none !important;
@@ -809,7 +778,7 @@
       <div class="result-label" id="resultlabel">Receive</div>
       <div class="result"><span id="out">0.00</span><span class="unit" id="outunit">USDT</span></div>
       <div class="result-sub" id="outsub">enter price &amp; amount</div>
-      <div class="copy-hint">tap to copy · hold for screenshot (profit hidden)</div>
+      <div class="copy-hint">hold to screenshot · profit hidden</div>
     </div>
     <div class="fields">
       <div class="field">
@@ -830,11 +799,6 @@
       <button class="chip" data-v="2000">2K</button>
     </div>
 
-    <!-- Screenshot (profit hidden) -->
-    <button class="shot-btn" id="shotBtn">
-      <svg viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
-      Tap to copy screenshot · profit hidden
-    </button>
     </div><!-- /main-content -->
     <div class="side-panel">
     <div class="scale">
@@ -866,7 +830,7 @@
   
     </div><!-- /side-panel --></div>
 
-<div class="toast" id="toast">Copied</div>
+<div class="toast" id="toast"></div>
 
 <script>
 const DEFAULT_RATES = { usd: 1, iqd: 14 };
@@ -1176,112 +1140,14 @@ function toast(msg) {
   setTimeout(() => t.classList.remove("show"), 1200);
 }
 
-/* ========== UNIVERSAL COPY ENGINE ==========
-   Works across ALL platforms: iOS Safari, Android Chrome, 
-   desktop browsers, in-app webviews, and PWA contexts.
-   Uses a cascading fallback strategy for maximum compatibility.
-*/
-function doCopy() {
-  const outEl = document.getElementById("out");
-  const rawValue = outEl.textContent;
-
-  if (rawValue === "0.00" || rawValue === "0") return;
-
-  const cleanValue = rawValue.replace(/,/g, "");
-
-  // --- Strategy 1: Modern Clipboard API (works on HTTPS + permission) ---
-  if (navigator.clipboard && window.isSecureContext) {
-    navigator.clipboard.writeText(cleanValue)
-      .then(() => {
-        showCopyFeedback();
-      })
-      .catch((err) => {
-        // Permission denied or API failed — fall through to legacy
-        copyFallback(cleanValue);
-      });
-    return;
-  }
-
-  // --- Strategy 2: Legacy execCommand (broadest compatibility) ---
-  copyFallback(cleanValue);
-}
-
-function copyFallback(text) {
-  // Create a hidden, selectable textarea
-  const ta = document.createElement("textarea");
-  ta.value = text;
-  ta.setAttribute("readonly", "");
-  ta.style.cssText = "position:fixed;top:-9999px;left:-9999px;opacity:0;pointer-events:none;";
-  document.body.appendChild(ta);
-
-  // Select the text using multiple methods for cross-platform reliability
-  ta.focus();
-  ta.select();
-  ta.setSelectionRange(0, ta.value.length); // iOS Safari needs this
-
-  let copied = false;
-  try {
-    copied = document.execCommand("copy");
-  } catch (e) {
-    copied = false;
-  }
-
-  document.body.removeChild(ta);
-
-  if (copied) {
-    showCopyFeedback();
-  } else {
-    // --- Strategy 3: iOS-specific workaround ---
-    // On iOS, execCommand often fails in standalone/PWA mode.
-    // We use a range selection on the actual visible element.
-    copyIOSFallback(text);
-  }
-}
-
-function copyIOSFallback(text) {
-  const outEl = document.getElementById("out");
-  const range = document.createRange();
-  const selection = window.getSelection();
-
-  range.selectNodeContents(outEl);
-  selection.removeAllRanges();
-  selection.addRange(range);
-
-  let copied = false;
-  try {
-    copied = document.execCommand("copy");
-  } catch (e) {
-    copied = false;
-  }
-
-  selection.removeAllRanges();
-
-  if (copied) {
-    showCopyFeedback();
-  } else {
-    // Last resort: show the value in a toast so user can manually copy
-    toast("Value: " + text);
-  }
-}
-
-function showCopyFeedback() {
-  const wrap = document.getElementById("resulttap");
-  wrap.classList.remove("copied");
-  void wrap.offsetWidth; // force reflow
-  wrap.classList.add("copied");
-  toast("Copied");
-}
-
-/* ========== SCREENSHOT COPY (PROFIT HIDDEN) ==========
-   Captures the calculator as a PNG image with ALL profit
-   elements hidden (side Profit Analysis panel, Profit
-   Calculator toggle/panel). Tries in order:
+/* ========== HOLD-TO-SCREENSHOT (PROFIT HIDDEN) ==========
+   Long-press the result to capture the calculator as a PNG image
+   with ALL profit elements hidden (side Profit Analysis panel,
+   Profit Calculator toggle/panel). Tries in order:
    1. Copy image to clipboard (paste anywhere)
    2. Native share sheet (mobile)
    3. Download PNG file
 */
-const shotBtn = document.getElementById("shotBtn");
-const shotBtnHTML = shotBtn.innerHTML;
 
 function ensureShotLib() {
   if (typeof html2canvas !== "undefined") return Promise.resolve();
@@ -1402,9 +1268,6 @@ function drawFallbackShot() {
 }
 
 async function copyScreenshotNoProfit() {
-  shotBtn.disabled = true;
-  shotBtn.innerHTML = "Capturing…";
-
   // Hide profit UI for the capture only
   document.body.classList.add("shot-mode");
   // Let layout settle + close keyboard-driven zoom quirks
@@ -1429,16 +1292,12 @@ async function copyScreenshotNoProfit() {
 
   if (!canvas) {
     toast("Screenshot failed");
-    shotBtn.disabled = false;
-    shotBtn.innerHTML = shotBtnHTML;
     return;
   }
 
   const blob = await new Promise(res => canvas.toBlob(res, "image/png"));
   if (!blob) {
     toast("Screenshot failed");
-    shotBtn.disabled = false;
-    shotBtn.innerHTML = shotBtnHTML;
     return;
   }
 
@@ -1446,12 +1305,7 @@ async function copyScreenshotNoProfit() {
   try {
     if (window.ClipboardItem && navigator.clipboard && window.isSecureContext) {
       await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
-      shotBtn.classList.remove("copied");
-      void shotBtn.offsetWidth; // force reflow
-      shotBtn.classList.add("copied");
       toast("Screenshot copied · profit hidden");
-      shotBtn.disabled = false;
-      shotBtn.innerHTML = shotBtnHTML;
       return;
     }
     throw new Error("no-clipboard");
@@ -1463,15 +1317,11 @@ async function copyScreenshotNoProfit() {
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
       await navigator.share({ files: [file], title: "Calculator" });
       toast("Shared · profit hidden");
-      shotBtn.disabled = false;
-      shotBtn.innerHTML = shotBtnHTML;
       return;
     }
     throw new Error("no-share");
   } catch (e) {
     if (e && e.name === "AbortError") { // user cancelled share sheet
-      shotBtn.disabled = false;
-      shotBtn.innerHTML = shotBtnHTML;
       return;
     }
     /* fall through to download */ }
@@ -1490,11 +1340,7 @@ async function copyScreenshotNoProfit() {
   } catch (e) {
     toast("Screenshot failed");
   }
-  shotBtn.disabled = false;
-  shotBtn.innerHTML = shotBtnHTML;
 }
-
-shotBtn.addEventListener("click", copyScreenshotNoProfit);
 
 // ===== FIND RATE LOGIC =====
 function updateFindRate() {
@@ -1625,25 +1471,22 @@ document.getElementById("resetamt").addEventListener("click", () => { amtEl.valu
 document.querySelectorAll(".tab").forEach(t => t.addEventListener("click", () => switchCurrency(t.dataset.currency)));
 document.querySelectorAll(".mode-btn").forEach(b => b.addEventListener("click", () => switchMode(b.dataset.mode)));
 
-// Tap vs HOLD gesture on the result:
-//   · Quick tap  → copy the number result
+// HOLD gesture on the result:
 //   · Hold/long-press → capture a screenshot with profit hidden
+//   (tap-to-copy has been removed — tap does nothing)
 const resultTap = document.getElementById("resulttap");
 const HOLD_MS = 550;
 
 let holdActive = false;
-let holdFired = false;   // true once the hold-screenshot has been triggered
 let holdTimer = null;
 let holdPulseTimer = null;
 
 function beginHold() {
   holdActive = true;
-  holdFired = false;
   clearTimeout(holdTimer);
   clearTimeout(holdPulseTimer);
   holdTimer = setTimeout(() => {
     if (!holdActive) return;
-    holdFired = true;
     // visual pulse while holding
     resultTap.classList.add("holding");
     clearTimeout(holdPulseTimer);
@@ -1658,13 +1501,7 @@ function endHold() {
   if (!holdActive) return;
   holdActive = false;
   clearTimeout(holdTimer);
-  if (holdFired) {
-    // long-press already took the screenshot — do nothing on release
-    holdFired = false;
-    return;
-  }
-  // quick tap → copy number
-  doCopy();
+  // release after a long-press already took the screenshot — do nothing
 }
 
 function cancelHold() {
@@ -1672,7 +1509,6 @@ function cancelHold() {
   clearTimeout(holdTimer);
   clearTimeout(holdPulseTimer);
   resultTap.classList.remove("holding");
-  holdFired = false;
 }
 
 // Use Pointer Events when available (modern browsers); fall back to touch+mouse.
