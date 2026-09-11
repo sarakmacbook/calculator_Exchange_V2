@@ -13,7 +13,8 @@ A sleek, dark-themed **P2P exchange calculator** for converting **US Dollar (USD
 
 | Feature | Description |
 |---------|-------------|
-| **🔄 Dual Currency** | Switch between **USD** and **IQD** instantly |
+| **🔄 Dual Currency** | One **Currency** dropdown on the left picks **USD** or **IQD** — no more juggling two tabs |
+| **🔀 Direction Toggle** | **Send → Receive** switcher sits on the right of the same row, independent of the currency |
 | **⚡ Real-time** | Result updates as you type — no submit button |
 | **📊 Scale Table** | See preset conversions at your current rate |
 | **💾 Persistent** | Remembers your last rate & amount (localStorage) |
@@ -24,6 +25,14 @@ A sleek, dark-themed **P2P exchange calculator** for converting **US Dollar (USD
 | **🖥️ Desktop Frame** | Phone-like centered layout on desktop |
 | **📸 Private Result Screenshot** | Hold the conversion result to save a PNG without any profit or percentage data |
 | **📋 Tap to Copy** | Quick-tap the result to copy the number to the clipboard |
+
+### Currency and direction
+
+The header row is a single line: the **Currency** dropdown on the left (USD or IQD) and the **Send → Receive** switcher on the right.
+
+* Picking a currency resets the unit price to that currency's default (USD **1**, IQD **14**), clears the amount, and reloads the quick chips, labels, and scale table.
+* Changing the direction keeps the chosen currency — you can flip between Send and Receive without losing it.
+* USD and IQD share the same layout: only labels, chips, and rounding change.
 
 ### Save a result screenshot
 
@@ -141,58 +150,58 @@ Upload `index.html` together with `manifest.webmanifest` and the icon files — 
 
 ### Mobile
 ```
-┌─────────────────────────┐
-│  Calculator             │
-│  [ USD ] [ IQD ]        │
-│                         │
-│       Receive           │
-│     500.00 USDT         │
-│  500 USD ÷ 1            │
-│                         │
-│  Unit price      reset  │
-│  1                      │
-│  USD per 1 USDT         │
-│                         │
-│  Amount send     clear  │
-│  500                    │
-│  USD                    │
-│                         │
-│  [500][1K][1.5K][2K]   │
-│                         │
-│  Scale at current rate  │
-│  500 USD   →  500.00    │
-│  1K USD    →  1000.00   │
-│  1.5K USD  →  1500.00   │
-│  2K USD    →  2000.00   │
-└─────────────────────────┘
+┌───────────────────────────┐
+│  Calculator               │
+│  CURRENCY · US Dollar     │
+│  [USD ▾]  [Send→Receive]  │
+│                           │
+│       Receive             │
+│     500.00 USDT           │
+│   500 USD ÷ 1             │
+│                           │
+│  Unit price          reset│
+│  1                        │
+│  USD per 1 USDT           │
+│                           │
+│  Amount send   clear      │
+│  500                      │
+│  USD                      │
+│                           │
+│  [500][1K][1.5K][2K]      │
+│                           │
+│  Scale at current rate    │
+│  500 USD    →  500.00     │
+│  1K USD     →  1000.00    │
+│  1.5K USD   →  1500.00    │
+│  2K USD     →  2000.00    │
+└───────────────────────────┘
 ```
 
 ### Desktop
 ```
-        ┌─────────────────────┐
-        │   💱 Calculator     │
-        │  [USD]  [IQD]       │
-        │                     │
-        │     Receive         │
-        │   500.00 USDT       │
-        │                     │
-        │  Unit price  reset  │
-        │  1                  │
-        │  USD per 1 USDT     │
-        │                     │
-        │  Amount send clear  │
-        │  500                │
-        │  USD                │
-        │                     │
-        │ [500][1K][1.5K][2K]│
-        │                     │
-        │  Scale at rate      │
-        │  500  → 500.00      │
-        │  1K   → 1000.00     │
-        │  1.5K → 1500.00     │
-        │  2K   → 2000.00     │
-        └─────────────────────┘
-              ↑ lime glow
+        ┌────────────────────────────────────────┐
+        │   Calculator                           │
+        │   CURRENCY · US Dollar                 │
+        │   [ USD   ▾ ]   [ Send → Receive ]     │
+        │                                        │
+        │          Receive                       │
+        │        500.00 USDT                     │
+        │                                        │
+        │   Unit price        reset              │
+        │   1                                    │
+        │   USD per 1 USDT                       │
+        │                                        │
+        │   Amount send   clear                  │
+        │   500                                  │
+        │   USD                                  │
+        │                                        │
+        │  [500][1K][1.5K][2K]                   │
+        │                                        │
+        │   Scale at rate                        │
+        │   500    → 500.00                      │
+        │   1K     → 1000.00                     │
+        └────────────────────────────────────────┘
+          ↑ Currency dropdown on the left · Send/Receive on the right
 ```
 
 ---
@@ -250,7 +259,7 @@ npx playwright install chromium
 node --test tests/screenshot.test.cjs
 ```
 
-The tests serve the page internally (no dev server needed) and cover USD/IQD in both modes, real mouse/touch holds, gesture cancellation, profit exclusion, PNG downloads, keyboard access, small-screen layout, sharing fallbacks, and export errors. A custom browser installation can be supplied with `CHROMIUM_EXECUTABLE_PATH` and, if needed, `CHROMIUM_ARGS` (a JSON array).
+The tests serve the page internally (no dev server needed) and cover the merged Currency dropdown (left) with the Send/Receive switcher (right) at both 1280px and 320px, plus USD/IQD in both modes, real mouse/touch holds, gesture cancellation, profit exclusion, PNG downloads, keyboard access, small-screen layout, sharing fallbacks, and export errors. A custom browser installation can be supplied with `CHROMIUM_EXECUTABLE_PATH` and, if needed, `CHROMIUM_ARGS` (a JSON array).
 
 ---
 

@@ -163,33 +163,64 @@
 
   .label { font-size:13px; color:#909090; letter-spacing:.5px; text-transform:uppercase; }
 
-  .tabs { display:flex; gap:8px; margin-top:10px; }
-  .tab {
-    flex:1; background:#181818; border:none; border-radius:12px; color:#909090;
-    padding:10px 0; font-size:14px; font-weight:600; font-family:inherit; cursor:pointer;
-    transition: all 0.2s;
+  /* Topbar: Currency dropdown (left) + Send/Receive switcher (right) */
+  .topbar {
+    display:flex;
+    align-items:flex-end;
+    justify-content:space-between;
+    gap:10px;
+    margin-top:10px;
+    flex-wrap:wrap;
   }
-  .tab.active { background:#c5f000; color:#000; }
-  .tab:active { opacity:0.8; }
+
+  /* Currency dropdown */
+  .currency-picker { display:flex; flex-direction:column; gap:5px; min-width:0; }
+  .currency-caption {
+    display:flex; align-items:baseline; gap:3px;
+    font-size:11px; color:#909090; letter-spacing:.5px; text-transform:uppercase; font-weight:600;
+  }
+  .currency-name::before { content:"·"; margin-right:3px; color:#3d3d3d; }
+  .currency-caption label { cursor:pointer; }
+  .currency-name {
+    font-size:10px; color:#5a5a5a; letter-spacing:.2px; text-transform:none; font-weight:600;
+  }
+  .currency-control { position:relative; display:flex; align-items:center; }
+  .currency-control select {
+    appearance:none; -webkit-appearance:none; -moz-appearance:none;
+    flex:1; min-width:112px;
+    background:#c5f000; color:#000; border:1px solid #c5f000; border-radius:12px;
+    font-family:inherit; font-size:14px; font-weight:800; letter-spacing:.5px;
+    padding:9px 32px 9px 13px; cursor:pointer; outline:none;
+    transition: background .2s, border-color .2s, opacity .2s;
+  }
+  .currency-control select:hover { background:#d3f53d; border-color:#d3f53d; }
+  .currency-control select:active { opacity:.85; }
+  .currency-control select:focus-visible { box-shadow:0 0 0 2px #000, 0 0 0 4px #c5f000; }
+  .currency-control select option { background:#141414; color:#fff; font-weight:600; }
+  .currency-caret {
+    position:absolute; right:11px; width:12px; height:12px; pointer-events:none;
+    fill:none; stroke:#000; stroke-width:2.6; stroke-linecap:round; stroke-linejoin:round;
+  }
 
   /* Mode switcher */
   .mode-switch {
     display:flex;
     align-items:center;
     justify-content:center;
-    gap:10px;
-    margin-top:10px;
+    gap:6px;
     padding:5px;
     background:#181818;
-    border-radius:14px;
+    border-radius:12px;
+    flex-shrink:0;
+    margin-left:auto;
   }
   .mode-switch .mode-btn {
-    flex:1;
+    flex:0 0 auto;
     background:transparent;
     border:none;
     border-radius:10px;
     color:#909090;
-    padding:7px 0;
+    padding:7px 12px;
     font-size:13px;
     font-weight:600;
     font-family:inherit;
@@ -233,10 +264,11 @@
     .result-wrap { margin-top:18px; }
     .result-label { font-size:14px; }
     .result-sub { font-size:13px; }
-    .mode-switch { margin-top:14px; }
-    .mode-switch .mode-btn { font-size:14px; padding:9px 0; }
-    .tabs { margin-top:12px; }
-    .tab { padding:11px 0; font-size:15px; }
+    .topbar { margin-top:12px; gap:14px; }
+    .mode-switch .mode-btn { font-size:14px; padding:9px 15px; }
+    .currency-caption { font-size:12px; }
+    .currency-name { font-size:11px; }
+    .currency-control select { font-size:15px; padding:11px 38px 11px 15px; min-width:170px; }
     .label { font-size:14px; }
   }
 
@@ -715,8 +747,10 @@
     .chips { margin-top:6px; }
     .chip { padding:6px 0; font-size:11px; }
     .scale { padding-top:8px; }
-    .mode-switch { margin-top:8px; }
-    .mode-switch .mode-btn { font-size:11px; padding:5px 0; }
+    .topbar { margin-top:8px; gap:8px; }
+    .mode-switch .mode-btn { font-size:11px; padding:5px 9px; }
+    .currency-control select { font-size:12px; padding:7px 26px 7px 10px; min-width:106px; }
+    .currency-caret { width:9px; height:9px; right:9px; }
     .find-rate-panel { padding:8px 10px; }
     .find-rate-panel .fr-field input { font-size:14px; }
     .find-rate-panel .fr-result .fr-res-value { font-size:16px; }
@@ -730,6 +764,11 @@
     .result .unit { font-size:14px; }
     .field input { font-size:22px; }
     .chip { font-size:12px; padding:9px 0; }
+    .currency-control select { font-size:13px; padding:9px 28px 9px 10px; min-width:110px; }
+    .currency-caret { width:10px; height:10px; right:9px; }
+    .mode-switch { gap:4px; }
+    .mode-switch .mode-btn { font-size:12px; padding:7px 9px; }
+    .mode-arrow { font-size:13px; }
     .find-rate-panel .fr-field input { font-size:16px; }
     .profit-panel .pr-field input { font-size:16px; }
   }
@@ -756,16 +795,29 @@
   <div class="app-frame">
     <div class="main-content">
     <div class="label">Calculator</div>
-    <div class="tabs">
-      <button class="tab active" data-currency="usd">USD</button>
-      <button class="tab" data-currency="iqd">IQD</button>
-    </div>
 
-    <!-- Mode Switcher -->
-    <div class="mode-switch" id="modeswitch">
-      <button class="mode-btn active" data-mode="send">Send</button>
-      <span class="mode-arrow">→</span>
-      <button class="mode-btn" data-mode="receive">Receive</button>
+    <!-- Currency dropdown (USD / IQD) on the left, Send → Receive on the right -->
+    <div class="topbar">
+      <div class="currency-picker">
+        <div class="currency-caption">
+          <label for="currency">Currency</label>
+          <span class="currency-name" id="currencyName">US Dollar</span>
+        </div>
+        <div class="currency-control">
+          <select id="currency" title="Choose the local currency">
+            <option value="usd" data-currency="usd">USD</option>
+            <option value="iqd" data-currency="iqd">IQD</option>
+          </select>
+          <svg class="currency-caret" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+        </div>
+      </div>
+
+      <!-- Mode Switcher -->
+      <div class="mode-switch" id="modeswitch" role="group" aria-label="Send or receive">
+        <button class="mode-btn active" data-mode="send">Send</button>
+        <span class="mode-arrow">→</span>
+        <button class="mode-btn" data-mode="receive">Receive</button>
+      </div>
     </div>
 
     <!-- Find Rate Toggle -->
@@ -961,6 +1013,7 @@ const DEFAULT_RATES = { usd: 1, iqd: 14 };
 const CURRENCY_CONFIG = {
   usd: {
     rateLabel: "USD per 1 USDT", amtLabel: "USD", placeholder: "500",
+    name: "US Dollar",
     chips: [500, 1000, 1500, 2000],
     chipLabels: ["500", "1K", "1.5K", "2K"],
     scaleAmounts: [500, 1000, 1500, 2000],
@@ -968,6 +1021,7 @@ const CURRENCY_CONFIG = {
   },
   iqd: {
     rateLabel: "IQD per 1 USDT", amtLabel: "IQD", placeholder: "500,000",
+    name: "Iraqi Dinar",
     chips: [500000, 1000000, 1500000, 2000000],
     chipLabels: ["500K", "1M", "1.5M", "2M"],
     scaleAmounts: [500000, 1000000, 1500000, 2000000],
@@ -1005,6 +1059,8 @@ let currentCurrency = "usd";
 let currentMode = "send";
 const rateEl = document.getElementById("rate");
 const amtEl = document.getElementById("amt");
+const currencySelect = document.getElementById("currency");
+const currencyName = document.getElementById("currencyName");
 
 // Quick amount calculator elements
 const amountCalcToggle = document.getElementById("amountCalcToggle");
@@ -1196,7 +1252,9 @@ function updateUI() {
   const cfg = CURRENCY_CONFIG[currentCurrency];
   const modeCfg = MODE_CONFIG[currentMode];
 
-  document.querySelectorAll(".tab").forEach(t => { t.classList.toggle("active", t.dataset.currency === currentCurrency); });
+  currencySelect.value = currentCurrency;
+  currencyName.textContent = cfg.name;
+  currencySelect.setAttribute("title", cfg.amtLabel + " \u00b7 " + cfg.name);
   document.querySelectorAll(".mode-btn").forEach(b => { b.classList.toggle("active", b.dataset.mode === currentMode); });
 
   document.getElementById("resultlabel").textContent = modeCfg.resultLabel;
@@ -1696,7 +1754,7 @@ rateEl.addEventListener("input", render);
 amtEl.addEventListener("input", render);
 document.getElementById("resetrate").addEventListener("click", () => { rateEl.value = DEFAULT_RATES[currentCurrency]; render(); });
 document.getElementById("resetamt").addEventListener("click", () => { amtEl.value = ""; closeAmountCalculator(); render(); });
-document.querySelectorAll(".tab").forEach(t => t.addEventListener("click", () => switchCurrency(t.dataset.currency)));
+currencySelect.addEventListener("change", () => switchCurrency(currencySelect.value));
 document.querySelectorAll(".mode-btn").forEach(b => b.addEventListener("click", () => switchMode(b.dataset.mode)));
 
 // ===== PERCENTAGE OF PROFIT =====
