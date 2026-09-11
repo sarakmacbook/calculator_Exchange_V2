@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">Exchange Calculator</title>
+  <desc id="desc">A lime calculator and exchange mark on a dark rounded square.</desc>
+  <rect width="512" height="512" rx="112" fill="#050505"/>
+  <rect x="22" y="22" width="468" height="468" rx="94" fill="#121212" stroke="#2d2d2d" stroke-width="8"/>
+  <path d="M142 190h174l-34-34 29-29 84 84-84 84-29-29 34-34H142z" fill="#c5f000"/>
+  <path d="M370 322H196l34 34-29 29-84-84 84-84 29 29-34 34h174z" fill="#fff"/>
+  <circle cx="256" cy="256" r="47" fill="#050505" stroke="#c5f000" stroke-width="10"/>
+  <path d="M256 229v54M229 256h54" stroke="#fff" stroke-width="13" stroke-linecap="round"/>
+</svg>

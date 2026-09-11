@@ -5,12 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="USD→USDT">
+<meta name="apple-mobile-web-app-title" content="Exchange Calc">
+<meta name="application-name" content="Exchange Calculator">
 <meta name="theme-color" content="#000000">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="format-detection" content="telephone=no">
-<link rel="apple-touch-icon" href="apple-touch-icon.png">
-<link rel="icon" href="icon-512.png">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="icon" href="icon-192.png" sizes="192x192" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png" sizes="180x180">
 <title>USD → USDT Calculator</title>
 <style>
   * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
@@ -248,6 +251,63 @@
   }
   .field input::placeholder { color:#3d3d3d; font-weight:400; }
   .field .cur { font-size:11px; color:#5a5a5a; font-weight:600; margin-top:1px; }
+  .field .flabel .field-actions { display:flex; align-items:center; gap:7px; margin-left:auto; }
+  .field .flabel .amount-calc-toggle {
+    width:25px; height:25px; display:inline-flex; align-items:center; justify-content:center;
+    padding:0; border:1px solid #3d3d3d; border-radius:7px; background:transparent;
+    color:#c5f000; cursor:pointer; transition:background .15s, border-color .15s, color .15s;
+  }
+  .field .flabel .amount-calc-toggle:hover:not(:disabled),
+  .field .flabel .amount-calc-toggle:focus-visible { background:#242b00; border-color:#c5f000; }
+  .field .flabel .amount-calc-toggle:disabled { color:#4b4b4b; border-color:#2a2a2a; cursor:not-allowed; }
+  .field .flabel .amount-calc-toggle svg { width:15px; height:15px; stroke:currentColor; fill:none; stroke-linecap:round; stroke-linejoin:round; stroke-width:1.9; }
+
+  /* Quick arithmetic for the amount field. The main input is updated only after Use total. */
+  .amount-calc-panel {
+    margin-top:10px; padding:11px; border:1px solid #303030; border-radius:13px;
+    background:#101010; animation:slideDown .2s ease;
+  }
+  .amount-calc-panel[hidden] { display:none; }
+  .amount-calc-header { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:9px; }
+  .amount-calc-title { color:#c5f000; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.45px; }
+  .amount-calc-close {
+    width:24px; height:24px; padding:0; border:0; border-radius:7px; background:#1d1d1d;
+    color:#909090; font-family:inherit; font-size:18px; line-height:1; cursor:pointer;
+  }
+  .amount-calc-close:hover, .amount-calc-close:focus-visible { color:#fff; background:#2a2a2a; }
+  .amount-calc-equation { display:grid; grid-template-columns:minmax(0, 1fr) 30px minmax(72px, 1fr); gap:7px; align-items:center; }
+  .amount-calc-base, .field .amount-calc-operand {
+    min-width:0; min-height:40px; border:1px solid #272727; border-radius:9px; background:#181818;
+    color:#fff; font-family:inherit; font-size:16px; font-weight:700; font-variant-numeric:tabular-nums;
+  }
+  .amount-calc-base { display:flex; align-items:center; padding:8px 10px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .amount-calc-symbol {
+    display:flex; align-items:center; justify-content:center; width:30px; height:30px;
+    border-radius:8px; background:#c5f000; color:#000; font-size:20px; font-weight:800; line-height:1;
+  }
+  .field .amount-calc-operand { width:100%; padding:8px 9px; outline:none; -webkit-appearance:none; appearance:none; }
+  .field .amount-calc-operand::placeholder { color:#595959; font-size:13px; font-weight:500; }
+  .field .amount-calc-operand:focus { border-color:#c5f000; }
+  .amount-calc-operators { display:grid; grid-template-columns:repeat(4, 1fr); gap:6px; margin-top:8px; }
+  .amount-calc-op {
+    min-height:34px; padding:0; border:1px solid #303030; border-radius:8px; background:#181818;
+    color:#fff; font-family:inherit; font-size:17px; font-weight:700; cursor:pointer; transition:all .15s;
+  }
+  .amount-calc-op:hover, .amount-calc-op:focus-visible { border-color:#c5f000; color:#c5f000; }
+  .amount-calc-op.active, .amount-calc-op[aria-pressed="true"] { background:#c5f000; border-color:#c5f000; color:#000; }
+  .amount-calc-preview {
+    display:flex; align-items:baseline; justify-content:space-between; gap:10px; margin-top:9px;
+    color:#909090; font-size:11px;
+  }
+  .amount-calc-preview strong { min-width:0; color:#fff; font-size:15px; font-variant-numeric:tabular-nums; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .amount-calc-preview.is-error strong { color:#ff7777; font-size:12px; white-space:normal; text-align:right; }
+  .amount-calc-apply {
+    width:100%; min-height:38px; margin-top:9px; padding:8px 10px; border:0; border-radius:9px;
+    background:#c5f000; color:#000; font-family:inherit; font-size:12px; font-weight:800; cursor:pointer;
+  }
+  .amount-calc-apply:active { opacity:.8; }
+  .amount-calc-apply:disabled { background:#2a2a2a; color:#666; cursor:not-allowed; }
+  .amount-calc-toggle:focus-visible, .amount-calc-close:focus-visible, .amount-calc-op:focus-visible, .amount-calc-apply:focus-visible { outline:2px solid #fff; outline-offset:2px; }
 
   @media (min-width: 768px) {
     .fields { margin-top:18px; gap:10px; }
@@ -691,7 +751,6 @@
   }
 </style>
 <base target="_blank">
-<base target="_blank">
 </head>
 <body>
   <div class="app-frame">
@@ -809,9 +868,38 @@
         <div class="cur" id="ratecur">USD per 1 USDT</div>
       </div>
       <div class="field">
-        <div class="flabel"><span id="amtlabel">Amount send</span><span class="reset" id="resetamt">clear</span></div>
+        <div class="flabel">
+          <span id="amtlabel">Amount send</span>
+          <span class="field-actions">
+            <button class="amount-calc-toggle" id="amountCalcToggle" type="button" title="Calculate amount" aria-label="Calculate amount" aria-controls="amountCalcPanel" aria-expanded="false" disabled>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="2.8" width="16" height="18.4" rx="2.2"></rect><path d="M8 7.6h8M8 12.2h.01M12 12.2h.01M16 12.2h.01M8 16.4h.01M12 16.4h.01M16 16.4h.01"></path></svg>
+            </button>
+            <span class="reset" id="resetamt">clear</span>
+          </span>
+        </div>
         <input id="amt" type="text" inputmode="decimal" placeholder="500" autocomplete="off">
         <div class="cur" id="amtcur">USD</div>
+        <section class="amount-calc-panel" id="amountCalcPanel" aria-label="Amount calculator" hidden>
+          <div class="amount-calc-header">
+            <span class="amount-calc-title">Quick calculate</span>
+            <button class="amount-calc-close" id="amountCalcClose" type="button" aria-label="Close amount calculator">×</button>
+          </div>
+          <div class="amount-calc-equation" aria-label="Amount calculation">
+            <span class="amount-calc-base" id="amountCalcBase" aria-label="Current amount">—</span>
+            <span class="amount-calc-symbol" id="amountCalcSymbol" aria-hidden="true">+</span>
+            <input class="amount-calc-operand" id="amountCalcOperand" type="text" inputmode="decimal" placeholder="Enter value" autocomplete="off" aria-label="Value to calculate with">
+          </div>
+          <div class="amount-calc-operators" role="group" aria-label="Choose an operation">
+            <button class="amount-calc-op active" type="button" data-amount-operation="+" aria-label="Add" aria-pressed="true">+</button>
+            <button class="amount-calc-op" type="button" data-amount-operation="-" aria-label="Subtract" aria-pressed="false">−</button>
+            <button class="amount-calc-op" type="button" data-amount-operation="*" aria-label="Multiply" aria-pressed="false">×</button>
+            <button class="amount-calc-op" type="button" data-amount-operation="/" aria-label="Divide" aria-pressed="false">÷</button>
+          </div>
+          <div class="amount-calc-preview" id="amountCalcPreview" role="status" aria-live="polite">
+            <span>New amount</span><strong id="amountCalcResult">Enter a value</strong>
+          </div>
+          <button class="amount-calc-apply" id="amountCalcApply" type="button" disabled>Use total</button>
+        </section>
       </div>
     </div>
     <div class="chips" id="chips">
@@ -917,6 +1005,155 @@ let currentCurrency = "usd";
 let currentMode = "send";
 const rateEl = document.getElementById("rate");
 const amtEl = document.getElementById("amt");
+
+// Quick amount calculator elements
+const amountCalcToggle = document.getElementById("amountCalcToggle");
+const amountCalcPanel = document.getElementById("amountCalcPanel");
+const amountCalcClose = document.getElementById("amountCalcClose");
+const amountCalcBase = document.getElementById("amountCalcBase");
+const amountCalcSymbol = document.getElementById("amountCalcSymbol");
+const amountCalcOperand = document.getElementById("amountCalcOperand");
+const amountCalcPreview = document.getElementById("amountCalcPreview");
+const amountCalcResult = document.getElementById("amountCalcResult");
+const amountCalcApply = document.getElementById("amountCalcApply");
+const amountCalcOperators = Array.from(document.querySelectorAll("[data-amount-operation]"));
+let amountCalcOperation = "+";
+
+function parseAmountCalcNumber(value) {
+  const raw = String(value).replace(/,/g, "").trim();
+  if (!raw || !/^[+−-]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+−-]?\d+)?$/i.test(raw)) return null;
+  const parsed = Number(raw.replace(/−/g, "-"));
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function getAmountCalcBase() {
+  const value = parseAmountCalcNumber(amtEl.value);
+  return value !== null && value > 0 ? value : null;
+}
+
+function amountCalcUnit() {
+  return currentMode === "send" ? CURRENCY_CONFIG[currentCurrency].amtLabel : "USDT";
+}
+
+function formatAmountCalcValue(value) {
+  return value.toLocaleString("en-US", { maximumFractionDigits: 8 });
+}
+
+function amountCalcInputValue(value) {
+  // Keep a plain editable number, while limiting floating-point noise from operations such as 0.1 + 0.2.
+  const rounded = Number(value.toFixed(8));
+  return rounded.toLocaleString("en-US", { useGrouping: false, maximumFractionDigits: 8 });
+}
+
+function amountCalcOperationSymbol(operation) {
+  return operation === "*" ? "×" : operation === "/" ? "÷" : operation === "-" ? "−" : "+";
+}
+
+function getAmountCalcComputation() {
+  const base = getAmountCalcBase();
+  if (base === null) return { ok: false, message: "Enter an amount first" };
+
+  const operand = parseAmountCalcNumber(amountCalcOperand.value);
+  if (operand === null) return { ok: false, message: "Enter a value" };
+  if (operand < 0) return { ok: false, message: "Use the − button for subtraction" };
+  if (amountCalcOperation === "/" && operand === 0) return { ok: false, message: "Cannot divide by zero" };
+
+  let value;
+  if (amountCalcOperation === "+") value = base + operand;
+  else if (amountCalcOperation === "-") value = base - operand;
+  else if (amountCalcOperation === "*") value = base * operand;
+  else value = base / operand;
+
+  if (!Number.isFinite(value)) return { ok: false, message: "Result is too large" };
+  if (value <= 0) return { ok: false, message: "Total must be greater than zero" };
+  return { ok: true, value };
+}
+
+function updateAmountCalculator() {
+  const base = getAmountCalcBase();
+  const hasBase = base !== null;
+  const operationLabel = { "+": "add", "-": "subtract", "*": "multiply", "/": "divide" }[amountCalcOperation];
+
+  amountCalcToggle.disabled = !hasBase;
+  amountCalcToggle.title = hasBase ? "Calculate amount" : "Enter an amount to calculate";
+  amountCalcToggle.setAttribute("aria-label", amountCalcToggle.title);
+  amountCalcBase.textContent = hasBase ? formatAmountCalcValue(base) : "—";
+  amountCalcSymbol.textContent = amountCalcOperationSymbol(amountCalcOperation);
+  amountCalcOperand.setAttribute("aria-label", "Value to " + operationLabel);
+  amountCalcOperators.forEach(button => {
+    const active = button.dataset.amountOperation === amountCalcOperation;
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-pressed", String(active));
+  });
+
+  const calculation = getAmountCalcComputation();
+  if (calculation.ok) {
+    amountCalcPreview.classList.remove("is-error");
+    amountCalcResult.textContent = formatAmountCalcValue(calculation.value) + " " + amountCalcUnit();
+    amountCalcApply.disabled = false;
+    amountCalcApply.textContent = "Use " + formatAmountCalcValue(calculation.value);
+  } else {
+    amountCalcPreview.classList.toggle("is-error", hasBase && amountCalcOperand.value.trim() !== "");
+    amountCalcResult.textContent = calculation.message;
+    amountCalcApply.disabled = true;
+    amountCalcApply.textContent = "Use total";
+  }
+}
+
+function openAmountCalculator() {
+  if (amountCalcToggle.disabled) return;
+  amountCalcOperation = "+";
+  amountCalcOperand.value = "";
+  amountCalcPanel.hidden = false;
+  amountCalcToggle.setAttribute("aria-expanded", "true");
+  updateAmountCalculator();
+  amountCalcOperand.focus();
+}
+
+function closeAmountCalculator() {
+  amountCalcPanel.hidden = true;
+  amountCalcToggle.setAttribute("aria-expanded", "false");
+  amountCalcOperand.value = "";
+  updateAmountCalculator();
+}
+
+function applyAmountCalculation() {
+  const calculation = getAmountCalcComputation();
+  if (!calculation.ok) {
+    updateAmountCalculator();
+    return;
+  }
+  amtEl.value = amountCalcInputValue(calculation.value);
+  amountCalcOperand.value = "";
+  render();
+  toast("Amount updated");
+  amountCalcOperand.focus();
+}
+
+amountCalcToggle.addEventListener("click", () => {
+  if (amountCalcPanel.hidden) openAmountCalculator();
+  else closeAmountCalculator();
+});
+amountCalcClose.addEventListener("click", () => {
+  closeAmountCalculator();
+  amountCalcToggle.focus();
+});
+amountCalcOperators.forEach(button => button.addEventListener("click", () => {
+  amountCalcOperation = button.dataset.amountOperation;
+  updateAmountCalculator();
+  amountCalcOperand.focus();
+}));
+amountCalcOperand.addEventListener("input", updateAmountCalculator);
+amountCalcOperand.addEventListener("keydown", event => {
+  if (event.key === "Enter") {
+    event.preventDefault();
+    applyAmountCalculation();
+  } else if (event.key === "Escape") {
+    closeAmountCalculator();
+    amountCalcToggle.focus();
+  }
+});
+amountCalcApply.addEventListener("click", applyAmountCalculation);
 
 // Find Rate elements
 const findRateToggle = document.getElementById("findRateToggle");
@@ -1069,6 +1306,7 @@ function render() {
       profitRow.style.display = "none";
     }
   }
+  updateAmountCalculator();
   updateScreenshotAvailability();
 }
 
@@ -1076,99 +1314,17 @@ function switchCurrency(curr) {
   currentCurrency = curr;
   rateEl.value = DEFAULT_RATES[curr];
   amtEl.value = "";
-  // ===== PERCENTAGE OF PROFIT =====
-const pctBtn = document.getElementById("pctBtn");
-const pctPanel = document.getElementById("pctPanel");
-const pctInput = document.getElementById("pctInput");
-const pctBase = document.getElementById("pctBase");
-const pctResult = document.getElementById("pctResult");
-const pctClose = document.getElementById("pctClose");
-
-let currentProfit = 0;
-
-pctBtn.addEventListener("click", () => {
-  pctPanel.style.display = pctPanel.style.display === "none" ? "block" : "none";
-  if (pctPanel.style.display === "block") {
-    pctInput.focus();
-    calcPct();
-  }
-});
-
-pctClose.addEventListener("click", () => {
-  pctPanel.style.display = "none";
-});
-
-pctInput.addEventListener("input", calcPct);
-
-function calcPct() {
-  const pct = num(pctInput.value);
-  const cfg = CURRENCY_CONFIG[currentCurrency];
-  if (pct > 0 && currentProfit !== 0) {
-    const result = currentProfit * (pct / 100);
-    const dec = currentCurrency === "usd" ? 2 : 0;
-    pctResult.textContent = fmt(result, dec) + " " + cfg.amtLabel;
-  } else {
-    pctResult.textContent = "—";
-  }
-}
-
-function updatePctBase() {
-  const cfg = CURRENCY_CONFIG[currentCurrency];
-  const dec = currentCurrency === "usd" ? 2 : 0;
-  pctBase.textContent = (currentProfit >= 0 ? "+" : "") + fmt(currentProfit, dec) + " " + cfg.amtLabel;
-  calcPct();
-}
-
-updateUI(); render();
+  closeAmountCalculator();
+  updateUI();
+  render();
 }
 
 function switchMode(mode) {
   currentMode = mode;
   amtEl.value = "";
-  // ===== PERCENTAGE OF PROFIT =====
-const pctBtn = document.getElementById("pctBtn");
-const pctPanel = document.getElementById("pctPanel");
-const pctInput = document.getElementById("pctInput");
-const pctBase = document.getElementById("pctBase");
-const pctResult = document.getElementById("pctResult");
-const pctClose = document.getElementById("pctClose");
-
-let currentProfit = 0;
-
-pctBtn.addEventListener("click", () => {
-  pctPanel.style.display = pctPanel.style.display === "none" ? "block" : "none";
-  if (pctPanel.style.display === "block") {
-    pctInput.focus();
-    calcPct();
-  }
-});
-
-pctClose.addEventListener("click", () => {
-  pctPanel.style.display = "none";
-});
-
-pctInput.addEventListener("input", calcPct);
-
-function calcPct() {
-  const pct = num(pctInput.value);
-  const cfg = CURRENCY_CONFIG[currentCurrency];
-  if (pct > 0 && currentProfit !== 0) {
-    const result = currentProfit * (pct / 100);
-    const dec = currentCurrency === "usd" ? 2 : 0;
-    pctResult.textContent = fmt(result, dec) + " " + cfg.amtLabel;
-  } else {
-    pctResult.textContent = "—";
-  }
-}
-
-function updatePctBase() {
-  const cfg = CURRENCY_CONFIG[currentCurrency];
-  const dec = currentCurrency === "usd" ? 2 : 0;
-  pctBase.textContent = (currentProfit >= 0 ? "+" : "") + fmt(currentProfit, dec) + " " + cfg.amtLabel;
-  calcPct();
-}
-
-updateUI(); render();
+  closeAmountCalculator();
+  updateUI();
+  render();
 }
 
 function toast(msg) {
@@ -1539,7 +1695,7 @@ prCalcBtn.addEventListener("click", () => {
 rateEl.addEventListener("input", render);
 amtEl.addEventListener("input", render);
 document.getElementById("resetrate").addEventListener("click", () => { rateEl.value = DEFAULT_RATES[currentCurrency]; render(); });
-document.getElementById("resetamt").addEventListener("click", () => { amtEl.value = ""; render(); });
+document.getElementById("resetamt").addEventListener("click", () => { amtEl.value = ""; closeAmountCalculator(); render(); });
 document.querySelectorAll(".tab").forEach(t => t.addEventListener("click", () => switchCurrency(t.dataset.currency)));
 document.querySelectorAll(".mode-btn").forEach(b => b.addEventListener("click", () => switchMode(b.dataset.mode)));
 

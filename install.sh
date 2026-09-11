@@ -16,12 +16,23 @@ if [ "$EUID" -ne 0 ]; then
     exit 1
 fi
 
-# ─── FIX #3: Verify index.html exists ───────────────────────────────
-if [ ! -f "$SCRIPT_DIR/index.html" ]; then
-    echo -e "${RED}❌ index.html not found in $SCRIPT_DIR${NC}"
-    echo -e "${YELLOW}   Make sure index.html is in the same directory as install.sh${NC}"
-    exit 1
-fi
+# ─── Verify the page and its install/shortcut assets ────────────────
+WEB_FILES=(
+    "index.html"
+    "manifest.webmanifest"
+    "favicon.svg"
+    "icon.svg"
+    "icon-192.png"
+    "icon-512.png"
+    "apple-touch-icon.png"
+)
+for WEB_FILE in "${WEB_FILES[@]}"; do
+    if [ ! -f "$SCRIPT_DIR/$WEB_FILE" ]; then
+        echo -e "${RED}❌ $WEB_FILE not found in $SCRIPT_DIR${NC}"
+        echo -e "${YELLOW}   Make sure all calculator files are in the same directory as install.sh${NC}"
+        exit 1
+    fi
+done
 
 echo -e "${GREEN}"
 echo "  ╔═══════════════════════════════════════════╗"
@@ -111,7 +122,7 @@ elif [ "$SERVICE" = "docker" ]; then
     if ! command -v docker &> /dev/null; then
         apt-get install -y -qq ca-certificates curl gnupg
         install -m 0755 -d /etc/apt/keyrings
-        curl -fsSL https://download.docker.com/linux/ubuntu/gpg' | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+        curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
         chmod a+r /etc/apt/keyrings/docker.gpg
         echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | tee /etc/apt/sources.list.d/docker.list
         apt-get update -qq
@@ -121,7 +132,9 @@ fi
 
 echo -e "${YELLOW}📁 Setting up files...${NC}"
 mkdir -p "$INSTALL_DIR"
-cp "$SCRIPT_DIR/index.html" "$INSTALL_DIR/"
+for WEB_FILE in "${WEB_FILES[@]}"; do
+    cp "$SCRIPT_DIR/$WEB_FILE" "$INSTALL_DIR/$WEB_FILE"
+done
 chown -R www-data:www-data "$INSTALL_DIR" 2>/dev/null || chown -R root:root "$INSTALL_DIR"
 chmod -R 755 "$INSTALL_DIR"
 
@@ -139,6 +152,11 @@ server {
 
     location / {
         try_files \$uri \$uri/ /index.html;
+    }
+
+    location = /manifest.webmanifest {
+        default_type application/manifest+json;
+        try_files \$uri =404;
     }
 
     gzip on;
@@ -204,7 +222,7 @@ EOF
 elif [ "$SERVICE" = "docker" ]; then
     cat > "$SCRIPT_DIR/Dockerfile" << 'EOF'
 FROM nginx:alpine
-COPY index.html /usr/share/nginx/html/index.html
+COPY index.html manifest.webmanifest favicon.svg icon.svg icon-192.png icon-512.png apple-touch-icon.png /usr/share/nginx/html/
 EXPOSE 80
 EOF
     docker build -t "$APP_NAME" "$SCRIPT_DIR"

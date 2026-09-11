@@ -382,3 +382,39 @@ test('invalid, zero or missing results are not copied', async t => {
   assert.deepEqual(await page.evaluate(() => window.__copied), []);
   assert.equal(await page.locator('#screenshotDialog').evaluate(el => el.open), false);
 });
+
+test('the amount calculator adds, subtracts, multiplies, and divides the entered amount', async t => {
+  const page = await calculator(t);
+  await page.fill('#amt', '10');
+  assert.equal(await page.locator('#amountCalcToggle').isEnabled(), true);
+  await page.click('#amountCalcToggle');
+  assert.equal(await page.locator('#amountCalcPanel').isVisible(), true);
+
+  const calculate = async (operation, operand, total) => {
+    await page.click(`[data-amount-operation="${operation}"]`);
+    await page.fill('#amountCalcOperand', operand);
+    assert.equal(await page.locator('#amountCalcResult').textContent(), `${total} USD`);
+    await page.click('#amountCalcApply');
+    assert.equal(await page.locator('#amt').inputValue(), total);
+  };
+
+  await calculate('+', '10', '20');
+  await calculate('-', '5', '15');
+  await calculate('*', '2', '30');
+  await calculate('/', '3', '10');
+  assert.equal(await page.locator('#out').textContent(), '10.00');
+});
+
+test('the amount calculator refuses a zero divisor and non-positive total', async t => {
+  const page = await calculator(t);
+  await page.fill('#amt', '10');
+  await page.click('#amountCalcToggle');
+  await page.click('[data-amount-operation="/"]');
+  await page.fill('#amountCalcOperand', '0');
+  assert.equal(await page.locator('#amountCalcResult').textContent(), 'Cannot divide by zero');
+  assert.equal(await page.locator('#amountCalcApply').isDisabled(), true);
+  await page.click('[data-amount-operation="-"]');
+  await page.fill('#amountCalcOperand', '10');
+  assert.equal(await page.locator('#amountCalcResult').textContent(), 'Total must be greater than zero');
+  assert.equal(await page.locator('#amountCalcApply').isDisabled(), true);
+});
