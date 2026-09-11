@@ -82,6 +82,82 @@ test('the standalone screenshot button is removed; the result itself is the only
   assert.equal(await page.locator('#screenshotHint').textContent(), 'Tap to copy · Hold to screenshot · Profit excluded');
 });
 
+test('USD and IQD are one Currency dropdown on the left, with Send/Receive on the right', async t => {
+  const page = await calculator(t);
+  assert.equal(html.includes('class="tabs"'), false, 'The two separate USD/IQD tab buttons are gone');
+  assert.equal(await page.locator('#currency').evaluate(el => el.tagName), 'SELECT', 'Currency is a real dropdown');
+  assert.equal(await page.locator('#currency').evaluate(el => el.options.length), 2);
+  assert.deepEqual(await page.locator('#currency').evaluate(el => Array.from(el.options).map(o => o.value)), ['usd', 'iqd']);
+  assert.deepEqual(await page.locator('#currency').evaluate(el => Array.from(el.options).map(o => o.textContent.trim())), ['USD', 'IQD']);
+  assert.equal((await page.locator('.currency-caption label').textContent()).trim(), 'Currency');
+  assert.equal(await page.locator('#currency').evaluate(el => !!el.closest('.topbar') && !!el.closest('.topbar').querySelector('#modeswitch')), true, 'Dropdown and Send/Receive share one topbar row');
+
+  const picker = await page.locator('.currency-picker').boundingBox();
+  const modeSwitch = await page.locator('#modeswitch').boundingBox();
+  const frame = await page.locator('.main-content').boundingBox();
+  assert.ok(picker.x <= frame.x + 2, `currency dropdown starts on the left (x=${picker.x}, frame=${frame.x})`);
+  assert.ok(modeSwitch.x > picker.x + picker.width / 2, 'Send/Receive sits to the right of the currency dropdown');
+  assert.ok(Math.abs((picker.y + picker.height) - (modeSwitch.y + modeSwitch.height)) < 24, 'both controls share the same row');
+  assert.ok(frame.x + frame.width - (modeSwitch.x + modeSwitch.width) < 56, 'Send/Receive is right-aligned');
+});
+
+test('the merged topbar still fits a 320px phone', async t => {
+  const page = await calculator(t, { viewport: { width: 320, height: 720 } });
+  const picker = await page.locator('.currency-picker').boundingBox();
+  const modeSwitch = await page.locator('#modeswitch').boundingBox();
+  const frame = await page.locator('.app-frame').boundingBox();
+  assert.ok(picker.width > 90, `the currency dropdown keeps a usable width (${picker.width}px)`);
+  assert.ok(modeSwitch.width > 90, `the Send/Receive switcher keeps a usable width (${modeSwitch.width}px)`);
+  assert.ok(picker.x + picker.width <= frame.x + frame.width + 1, 'the dropdown stays inside the screen');
+  assert.ok(modeSwitch.x + modeSwitch.width <= frame.x + frame.width + 1, 'Send/Receive stays inside the screen');
+  assert.equal(await page.locator('#currency').isVisible(), true);
+  assert.equal(await page.locator('#modeswitch .mode-btn').first().isVisible(), true);
+});
+
+test('the Currency dropdown drives the whole calculator and keeps Send/Receive independent', async t => {
+  const page = await calculator(t);
+  assert.equal(await page.locator('#rate').inputValue(), '1', 'USD default rate');
+  assert.equal(await page.locator('#ratecur').textContent(), 'USD per 1 USDT');
+  assert.equal(await page.locator('#currencyName').textContent(), 'US Dollar');
+
+  await page.selectOption('#currency', 'iqd');
+  assert.equal(await page.locator('#rate').inputValue(), '14', 'the IQD default rate is restored on switch');
+  assert.equal(await page.locator('#ratecur').textContent(), 'IQD per 1 USDT');
+  assert.equal(await page.locator('#amtcur').textContent(), 'IQD');
+  assert.equal(await page.locator('#currencyName').textContent(), 'Iraqi Dinar');
+  assert.deepEqual(await page.locator('#chips .chip').allTextContents(), ['500K', '1M', '1.5M', '2M']);
+  assert.equal(await page.locator('#modeswitch .mode-btn.active').textContent(), 'Send', 'the direction is untouched by a currency change');
+
+  await page.fill('#rate', '1500');
+  await page.fill('#amt', '1500000');
+  assert.equal(await page.locator('#out').textContent(), '1,000.00');
+  assert.equal(await page.locator('#outunit').textContent(), 'USDT');
+
+  await page.click('[data-mode="receive"]');
+  assert.equal(await page.locator('#currency').inputValue(), 'iqd', 'the currency stays IQD when the direction changes');
+  assert.equal(await page.locator('#resultlabel').textContent(), 'Send');
+  await page.fill('#amt', '100');
+  assert.equal(await page.locator('#out').textContent(), '150,000');
+  assert.equal(await page.locator('#outunit').textContent(), 'IQD');
+
+  await page.selectOption('#currency', 'usd');
+  assert.equal(await page.locator('#modeswitch .mode-btn.active').textContent(), 'Receive');
+  assert.equal(await page.locator('#rate').inputValue(), '1', 'USD default rate returns');
+  assert.equal(await page.locator('#ratecur').textContent(), 'USD per 1 USDT');
+});
+
+test('the currency dropdown is keyboard accessible', async t => {
+  const page = await calculator(t);
+  await page.focus('#currency');
+  await page.keyboard.press('ArrowDown');
+  assert.equal(await page.locator('#currency').inputValue(), 'iqd');
+  assert.equal(await page.locator('#ratecur').textContent(), 'IQD per 1 USDT');
+  assert.equal(await page.locator('#rate').inputValue(), '14');
+  await page.keyboard.press('ArrowUp');
+  assert.equal(await page.locator('#currency').inputValue(), 'usd');
+  assert.equal(await page.locator('#rate').inputValue(), '1');
+});
+
 const conversions = [
   { currency: 'usd', mode: 'send', rate: '1.05', amount: '1000', label: 'RECEIVE', result: '952.38', unit: 'USDT', pair: 'USD → USDT', input: '1,000 USD' },
   { currency: 'usd', mode: 'receive', rate: '1.05', amount: '100', label: 'SEND', result: '105.00', unit: 'USD', pair: 'USDT → USD', input: '100 USDT' },
@@ -92,7 +168,7 @@ const conversions = [
 for (const conversion of conversions) {
   test(`PNG download has the correct ${conversion.currency.toUpperCase()} ${conversion.mode} result`, async t => {
     const page = await calculator(t);
-    if (conversion.currency !== 'usd') await page.click('[data-currency="iqd"]');
+    if (conversion.currency !== 'usd') await page.selectOption('#currency', conversion.currency);
     if (conversion.mode !== 'send') await page.click('[data-mode="receive"]');
     await setValues(page, conversion.rate, conversion.amount);
     await openScreenshot(page);
@@ -332,7 +408,7 @@ for (const c of copies) {
     const page = await calculator(t);
     await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
     await recordClipboard(page);
-    if (c.currency !== 'usd') await page.click('[data-currency="iqd"]');
+    if (c.currency !== 'usd') await page.selectOption('#currency', c.currency);
     if (c.mode !== 'send') await page.click('[data-mode="receive"]');
     await setValues(page, c.rate, c.amount);
     await tapResult(page);
