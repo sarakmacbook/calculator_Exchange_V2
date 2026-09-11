@@ -5,9 +5,15 @@
 
 [![Deploy to GitHub Pages](https://img.shields.io/badge/Deploy%20to-GitHub%20Pages-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/sarakmacbook/calculator_Exchange_V2/actions/workflows/pages.yml)
 
-> **First deployment:** A repository administrator must [enable GitHub Pages](https://github.com/sarakmacbook/calculator_Exchange_V2/settings/pages) and set **Source** to **GitHub Actions**.
+> **First deployment (one-time):** A repository administrator must enable GitHub Pages before the workflow can publish. If a run fails at the **Setup Pages** step with `Get Pages site failed … Not Found`, Pages simply isn't enabled yet — do either of these:
 >
-> Then click **Deploy to GitHub Pages** to open the workflow and select **Run workflow**. GitHub write access is required.
+> 1. Open **[Settings → Pages](https://github.com/sarakmacbook/calculator_Exchange_V2/settings/pages)**, set **Build and deployment → Source** to **GitHub Actions**, and **Save**; or
+> 2. Run this as the repo owner (authed with `gh`):
+>    ```bash
+>    gh api -X POST repos/sarakmacbook/calculator_Exchange_V2/pages -f build_type=workflow
+>    ```
+>
+> Then click **Deploy to GitHub Pages** to open the workflow and select **Run workflow** (or just push to `main`). GitHub write access is required.
 
 A sleek, dark-themed **P2P exchange calculator** for converting **US Dollar (USD)** and **Iraqi Dinar (IQD)** to **USDT**. Built as a tiny static site — zero dependencies, blazing fast, and fully responsive across **all devices**.
 
@@ -193,6 +199,8 @@ Upload `index.html` together with `manifest.webmanifest` and the icon files — 
 
 > **GitHub Pages note:** The repo ships a ready-to-use workflow (`.github/workflows/pages.yml`) that builds and publishes the static site automatically on every push to `main`. To activate it, go to **Settings → Pages**, set **Source** to **GitHub Actions**, and push a commit. The live demo then appears at:
 > `https://sarakmacbook.github.io/calculator_Exchange_V2/`
+>
+> If the workflow's **Setup Pages** step fails with `Get Pages site failed … Not Found`, Pages has not been enabled yet (it 404s until the site is created). Enable it via **Settings → Pages → Source: GitHub Actions**, or with the one-liner shown in the *First deployment* note at the top of this file.
 
 ---
 
