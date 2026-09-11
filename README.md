@@ -3,7 +3,7 @@
 > **Live Demo:** [https://sarakmacbook.github.io/calculator_Exchange_V2/](https://sarakmacbook.github.io/calculator_Exchange_V2/)  
 > **GitHub:** [https://github.com/sarakmacbook/calculator_Exchange_V2](https://github.com/sarakmacbook/calculator_Exchange_V2)
 
-A sleek, dark-themed **P2P exchange calculator** for converting **US Dollar (USD)** and **Iraqi Dinar (IQD)** to **USDT**. Built as a single static file — zero dependencies, blazing fast, and fully responsive across **all devices**.
+A sleek, dark-themed **P2P exchange calculator** for converting **US Dollar (USD)** and **Iraqi Dinar (IQD)** to **USDT**. Built as a tiny static site — zero dependencies, blazing fast, and fully responsive across **all devices**.
 
 ![Dark Theme](https://img.shields.io/badge/theme-dark-black?style=flat-square) ![PWA Ready](https://img.shields.io/badge/PWA-ready-c5f000?style=flat-square) ![Zero Dependencies](https://img.shields.io/badge/deps-zero-success?style=flat-square) ![Responsive](https://img.shields.io/badge/responsive-all_devices-blue?style=flat-square) ![Made by AI](https://img.shields.io/badge/made_by_AI-Kimi_2.6-c5f000?style=flat-square)
 
@@ -18,7 +18,8 @@ A sleek, dark-themed **P2P exchange calculator** for converting **US Dollar (USD
 | **📊 Scale Table** | See preset conversions at your current rate |
 | **💾 Persistent** | Remembers your last rate & amount (localStorage) |
 | **🎯 Quick Chips** | Tap 500 / 1K / 1.5K / 2K (USD) or 500K / 1M / 1.5M / 2M (IQD) |
-| **📱 PWA Ready** | Add to home screen on iOS & Android |
+| **➕ Quick Amount Math** | Use the calculator icon beside Amount to add, subtract, multiply, or divide before applying a new total |
+| **📱 PWA Ready** | Branded tab, browser shortcut, and home-screen icon on iOS & Android |
 | **🌙 Dark Mode** | Clean black theme with lime green accents |
 | **🖥️ Desktop Frame** | Phone-like centered layout on desktop |
 | **📸 Private Result Screenshot** | Hold the conversion result to save a PNG without any profit or percentage data |
@@ -33,6 +34,15 @@ A sleek, dark-themed **P2P exchange calculator** for converting **US Dollar (USD
 The image contains only the conversion result, formula, unit price, and amount. All profit and percentage panels are excluded, even when open; the calculator's values and panels are left unchanged. Short taps and scrolling do not capture an image. PNGs are generated locally using native canvas, with no upload, external library, or network connection required.
 
 **Tap to copy:** a quick tap (without holding) on the main result copies the numeric result to your clipboard, so you can paste it anywhere. Hold still opens the screenshot.
+
+### Quick amount math
+
+1. Enter an amount, for example **10**.
+2. Tap the small calculator icon beside **clear** in the amount field.
+3. Choose **+**, **−**, **×**, or **÷**, then enter another value. For example, `10 + 10` previews **20**.
+4. Tap **Use 20** (or press Enter) to put the total into the amount field and update the conversion.
+
+The calculator prevents division by zero and totals of zero or less, so the exchange amount stays valid.
 
 ---
 
@@ -112,7 +122,7 @@ Or use the interactive installer and pick **Docker**.
 
 ## 📤 Manual Deploy
 
-Just upload `index.html` — it works on **any** static host:
+Upload `index.html` together with `manifest.webmanifest` and the icon files — it works on **any** static host:
 
 | Platform | Method |
 |----------|--------|
@@ -203,7 +213,8 @@ Tap **reset** to restore defaults.
 - **HTML5** — semantic markup, viewport-fit=cover
 - **CSS3** — flexbox, media queries, safe-area insets, env()
 - **Vanilla JS** — no frameworks, no build step
-- **Single file** — everything in `index.html`
+- **Static HTML** — core UI and calculator logic in `index.html`
+- **Install assets** — a manifest plus favicon, browser, and home-screen icons
 - **Zero dependencies** — no npm, no bundler
 
 ---
@@ -212,11 +223,18 @@ Tap **reset** to restore defaults.
 
 ```
 calculator_Exchange_V2/
-├── index.html          # The entire app (responsive, PWA-ready)
-├── install.sh          # Interactive VPS installer
-├── README.md           # This file
-├── Caddyfile           # Caddy server config
-├── docker-compose.yml  # Docker Compose setup
+├── index.html              # The entire app (responsive, PWA-ready)
+├── manifest.webmanifest    # Browser shortcut / install metadata
+├── favicon.svg             # Browser-tab logo
+├── icon.svg                # Scalable app-icon source
+├── icon-192.png            # Android / browser shortcut icon
+├── icon-512.png            # High-resolution install icon
+├── apple-touch-icon.png    # iOS home-screen icon
+├── Dockerfile              # Production container image
+├── install.sh              # Interactive VPS installer
+├── README.md               # This file
+├── Caddyfile               # Caddy server config
+├── docker-compose.yml      # Docker Compose setup
 └── .gitignore
 ```
 

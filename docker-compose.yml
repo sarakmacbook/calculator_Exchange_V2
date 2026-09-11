@@ -8,4 +8,10 @@ services:
       - "80:80"
     volumes:
       - ./index.html:/usr/share/nginx/html/index.html:ro
+      - ./manifest.webmanifest:/usr/share/nginx/html/manifest.webmanifest:ro
+      - ./favicon.svg:/usr/share/nginx/html/favicon.svg:ro
+      - ./icon.svg:/usr/share/nginx/html/icon.svg:ro
+      - ./icon-192.png:/usr/share/nginx/html/icon-192.png:ro
+      - ./icon-512.png:/usr/share/nginx/html/icon-512.png:ro
+      - ./apple-touch-icon.png:/usr/share/nginx/html/apple-touch-icon.png:ro
     restart: unless-stopped
