@@ -1240,10 +1240,10 @@ function applyAmountCalculation() {
     return;
   }
   amtEl.value = amountCalcInputValue(calculation.value);
-  amountCalcOperand.value = "";
+  closeAmountCalculator();
   render();
   toast("Amount updated");
-  amountCalcOperand.focus();
+  amountCalcToggle.focus();
 }
 
 amountCalcToggle.addEventListener("click", () => {

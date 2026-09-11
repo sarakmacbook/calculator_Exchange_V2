@@ -546,11 +546,16 @@ test('the amount calculator adds, subtracts, multiplies, and divides the entered
   assert.equal(await page.locator('#amountCalcPanel').isVisible(), true);
 
   const calculate = async (operation, operand, total) => {
+    if (!(await page.locator('#amountCalcPanel').isVisible())) {
+      await page.click('#amountCalcToggle');
+    }
     await page.click(`[data-amount-operation="${operation}"]`);
     await page.fill('#amountCalcOperand', operand);
     assert.equal(await page.locator('#amountCalcResult').textContent(), `${total} USD`);
     await page.click('#amountCalcApply');
     assert.equal(await page.locator('#amt').inputValue(), total);
+    // Using the total closes the calculator panel.
+    assert.equal(await page.locator('#amountCalcPanel').isVisible(), false);
   };
 
   await calculate('+', '10', '20');
