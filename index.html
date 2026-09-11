@@ -294,7 +294,7 @@
   .field .flabel .amount-calc-toggle:disabled { color:#4b4b4b; border-color:#2a2a2a; cursor:not-allowed; }
   .field .flabel .amount-calc-toggle svg { width:15px; height:15px; stroke:currentColor; fill:none; stroke-linecap:round; stroke-linejoin:round; stroke-width:1.9; }
 
-  /* Quick arithmetic for the amount field. The main input is updated only after Use total, which always closes this panel. */
+  /* Quick arithmetic for the amount field. The main input is updated only after Use total. */
   .amount-calc-panel {
     margin-top:10px; padding:11px; border:1px solid #303030; border-radius:13px;
     background:#101010; animation:slideDown .2s ease;
@@ -336,12 +336,9 @@
   .amount-calc-apply {
     width:100%; min-height:38px; margin-top:9px; padding:8px 10px; border:0; border-radius:9px;
     background:#c5f000; color:#000; font-family:inherit; font-size:12px; font-weight:800; cursor:pointer;
-    touch-action:manipulation;
   }
-  .amount-calc-op, .amount-calc-close { touch-action:manipulation; }
   .amount-calc-apply:active { opacity:.8; }
-  /* No total to apply yet: muted, but still a real button so a tap closes the panel instead of dying. */
-  .amount-calc-apply[aria-disabled="true"] { background:#2a2a2a; color:#909090; }
+  .amount-calc-apply:disabled { background:#2a2a2a; color:#666; cursor:not-allowed; }
   .amount-calc-toggle:focus-visible, .amount-calc-close:focus-visible, .amount-calc-op:focus-visible, .amount-calc-apply:focus-visible { outline:2px solid #fff; outline-offset:2px; }
 
   @media (min-width: 768px) {
@@ -997,7 +994,7 @@
           <div class="amount-calc-preview" id="amountCalcPreview" role="status" aria-live="polite">
             <span>New amount</span><strong id="amountCalcResult">Enter a value</strong>
           </div>
-          <button class="amount-calc-apply" id="amountCalcApply" type="button" aria-disabled="true" title="Nothing to use yet — tap to close">Use total</button>
+          <button class="amount-calc-apply" id="amountCalcApply" type="button" disabled>Use total</button>
         </section>
       </div>
     </div>
@@ -1209,20 +1206,14 @@ function updateAmountCalculator() {
   if (calculation.ok) {
     amountCalcPreview.classList.remove("is-error");
     amountCalcResult.textContent = formatAmountCalcValue(calculation.value) + " " + amountCalcUnit();
-    setAmountCalcApplyState(true, "Use " + formatAmountCalcValue(calculation.value));
+    amountCalcApply.disabled = false;
+    amountCalcApply.textContent = "Use " + formatAmountCalcValue(calculation.value);
   } else {
     amountCalcPreview.classList.toggle("is-error", hasBase && amountCalcOperand.value.trim() !== "");
     amountCalcResult.textContent = calculation.message;
-    setAmountCalcApplyState(false, "Use total");
+    amountCalcApply.disabled = true;
+    amountCalcApply.textContent = "Use total";
   }
-}
-
-// aria-disabled rather than the disabled attribute: with no total to use the button is muted,
-// but a tap still closes the panel instead of being a dead target.
-function setAmountCalcApplyState(ready, label) {
-  amountCalcApply.setAttribute("aria-disabled", String(!ready));
-  amountCalcApply.title = ready ? "Use this total and close" : "Nothing to use yet — tap to close";
-  amountCalcApply.textContent = label;
 }
 
 function openAmountCalculator() {
@@ -1236,27 +1227,15 @@ function openAmountCalculator() {
 }
 
 function closeAmountCalculator() {
-  // Safari keeps the on-screen keyboard up when a focused field is hidden, which makes the
-  // panel look like it never closed — drop focus before hiding it.
-  amountCalcOperand.blur();
   amountCalcPanel.hidden = true;
   amountCalcToggle.setAttribute("aria-expanded", "false");
   amountCalcOperand.value = "";
   updateAmountCalculator();
 }
 
-// options.dismissOnly closes the panel without touching the amount when there is no total to use.
-function applyAmountCalculation(options) {
-  const dismissOnly = !!(options && options.dismissOnly);
+function applyAmountCalculation() {
   const calculation = getAmountCalcComputation();
   if (!calculation.ok) {
-    if (dismissOnly) {
-      closeAmountCalculator();
-      amountCalcToggle.focus();
-      toast("Nothing to apply");
-      return;
-    }
-    // Enter in the value field keeps the panel open so the typo can be fixed.
     updateAmountCalculator();
     return;
   }
@@ -1285,18 +1264,12 @@ amountCalcOperand.addEventListener("keydown", event => {
   if (event.key === "Enter") {
     event.preventDefault();
     applyAmountCalculation();
+  } else if (event.key === "Escape") {
+    closeAmountCalculator();
+    amountCalcToggle.focus();
   }
 });
-// Escape anywhere in the panel closes it, whichever control has focus.
-amountCalcPanel.addEventListener("keydown", event => {
-  if (event.key !== "Escape") return;
-  event.preventDefault();
-  closeAmountCalculator();
-  amountCalcToggle.focus();
-});
-// Hitting the total always closes the panel: it applies when there is a total, and simply
-// dismisses when there is not, so the button is never a dead tap.
-amountCalcApply.addEventListener("click", () => applyAmountCalculation({ dismissOnly: true }));
+amountCalcApply.addEventListener("click", applyAmountCalculation);
 
 // Find Rate elements
 const findRateToggle = document.getElementById("findRateToggle");

@@ -554,10 +554,8 @@ test('the amount calculator adds, subtracts, multiplies, and divides the entered
     assert.equal(await page.locator('#amountCalcResult').textContent(), `${total} USD`);
     await page.click('#amountCalcApply');
     assert.equal(await page.locator('#amt').inputValue(), total);
-    // Hitting the total closes the panel, and focus leaves it so a phone's on-screen
-    // keyboard goes away with the panel instead of sitting over the result.
+    // Using the total closes the calculator panel.
     assert.equal(await page.locator('#amountCalcPanel').isVisible(), false);
-    assert.equal(await page.evaluate(() => document.activeElement?.id), 'amountCalcToggle');
   };
 
   await calculate('+', '10', '20');
@@ -567,45 +565,16 @@ test('the amount calculator adds, subtracts, multiplies, and divides the entered
   assert.equal(await page.locator('#out').textContent(), '10.00');
 });
 
-test('the amount calculator refuses a zero divisor and non-positive total, but still closes on the total button', async t => {
+test('the amount calculator refuses a zero divisor and non-positive total', async t => {
   const page = await calculator(t);
   await page.fill('#amt', '10');
   await page.click('#amountCalcToggle');
   await page.click('[data-amount-operation="/"]');
   await page.fill('#amountCalcOperand', '0');
   assert.equal(await page.locator('#amountCalcResult').textContent(), 'Cannot divide by zero');
-  assert.equal(await page.locator('#amountCalcApply').getAttribute('aria-disabled'), 'true');
+  assert.equal(await page.locator('#amountCalcApply').isDisabled(), true);
   await page.click('[data-amount-operation="-"]');
   await page.fill('#amountCalcOperand', '10');
   assert.equal(await page.locator('#amountCalcResult').textContent(), 'Total must be greater than zero');
-  assert.equal(await page.locator('#amountCalcApply').getAttribute('aria-disabled'), 'true');
-
-  // Enter in the value field keeps the panel open so the entry can be fixed.
-  await page.press('#amountCalcOperand', 'Enter');
-  assert.equal(await page.locator('#amountCalcPanel').isVisible(), true);
-  assert.equal(await page.locator('#amt').inputValue(), '10');
-
-  // The muted button is never a dead tap: it closes the panel and leaves the amount alone.
-  await page.click('#amountCalcApply');
-  assert.equal(await page.locator('#amountCalcPanel').isVisible(), false);
-  assert.equal(await page.locator('#amt').inputValue(), '10');
-  assert.equal(await page.locator('#toast').textContent(), 'Nothing to apply');
-});
-
-test('Escape closes the amount calculator from any control inside it', async t => {
-  const page = await calculator(t);
-  await page.fill('#amt', '10');
-  await page.click('#amountCalcToggle');
-  assert.equal(await page.locator('#amountCalcPanel').isVisible(), true);
-
-  await page.focus('#amountCalcApply');
-  await page.keyboard.press('Escape');
-  assert.equal(await page.locator('#amountCalcPanel').isVisible(), false);
-  assert.equal(await page.locator('#amountCalcToggle').getAttribute('aria-expanded'), 'false');
-
-  await page.click('#amountCalcToggle');
-  await page.fill('#amountCalcOperand', '5');
-  await page.keyboard.press('Escape');
-  assert.equal(await page.locator('#amountCalcPanel').isVisible(), false);
-  assert.equal(await page.locator('#amt').inputValue(), '10');
+  assert.equal(await page.locator('#amountCalcApply').isDisabled(), true);
 });
