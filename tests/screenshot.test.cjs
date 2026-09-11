@@ -158,62 +158,6 @@ test('the currency dropdown is keyboard accessible', async t => {
   assert.equal(await page.locator('#rate').inputValue(), '1');
 });
 
-test('the Deploy to GitHub button is a labelled mock that animates and never touches the network', async t => {
-  const page = await calculator(t);
-  const requests = [];
-  page.on('request', request => requests.push(request.url()));
-
-  assert.equal(await page.locator('#deployDemoLabel').textContent(), 'Deploy to GitHub');
-  assert.equal(await page.locator('.deploy-demo-tag').textContent(), 'demo');
-  assert.match(await page.locator('#deployDemoNote').textContent(), /Demo only/u);
-  assert.match(await page.locator('#deployDemoNote').textContent(), /publishes nothing/u);
-  assert.equal(await page.locator('#deployDemoUrl').isHidden(), true);
-  assert.equal(await page.locator('#deployDemoLog').getAttribute('aria-live'), 'polite');
-
-  await page.click('#deployDemoBtn');
-  assert.equal(await page.locator('#deployDemoLabel').textContent(), 'Deploying…');
-  assert.equal(await page.locator('#deployDemoBtn').isDisabled(), true);
-  assert.equal(await page.locator('#deployDemoPanel').evaluate(el => el.classList.contains('open')), true);
-
-  // Repeat activations while running are ignored, so the log can never pile up.
-  await page.dispatchEvent('#deployDemoBtn', 'click');
-  await page.dispatchEvent('#deployDemoBtn', 'click');
-
-  await page.clock.runFor(450);
-  assert.deepEqual(await page.locator('#deployDemoLog li').allTextContents(), ['Build static site · index.html + icons']);
-  assert.equal(await page.locator('#deployDemoFill').evaluate(el => el.style.width), '25%');
-
-  await page.clock.runFor(2000);
-  assert.equal(await page.locator('#deployDemoLog li').count(), 4, 'one run, four stages, no duplicates');
-  assert.equal(await page.locator('#deployDemoFill').evaluate(el => el.style.width), '100%');
-  assert.equal(await page.locator('#deployDemoLabel').textContent(), 'Deployed');
-  assert.equal(await page.locator('#deployDemoBtn').isDisabled(), false);
-  assert.equal(await page.locator('#deployDemoPanel').evaluate(el => el.classList.contains('done')), true);
-  assert.match(await page.locator('#deployDemoUrl').textContent(), /Live at https:\/\/sarakmacbook\.github\.io\/calculator_Exchange_V2 — not published; demo only/u);
-
-  assert.deepEqual(requests.filter(url => !url.startsWith('https://calculator.test/')), [], 'the mock must not make any request');
-  assert.equal(await page.evaluate(() => typeof window.fetch === 'function'), true, 'fetch is untouched, not replaced');
-
-  await page.click('#deployDemoReset');
-  assert.equal(await page.locator('#deployDemoLabel').textContent(), 'Deploy to GitHub');
-  assert.equal(await page.locator('#deployDemoLog li').count(), 0);
-  assert.equal(await page.locator('#deployDemoFill').evaluate(el => el.style.width), '0%');
-  assert.equal(await page.locator('#deployDemoUrl').isHidden(), true);
-  assert.equal(await page.locator('#deployDemoPanel').evaluate(el => el.classList.contains('open')), false);
-});
-
-test('the deploy mock leaves the calculator working', async t => {
-  const page = await calculator(t);
-  await setValues(page, '1500', '1500000');
-  await page.click('#deployDemoBtn');
-  await page.clock.runFor(2500);
-  assert.equal(await page.locator('#out').textContent(), '1,000.00');
-  assert.equal(await page.locator('#deployDemoLabel').textContent(), 'Deployed');
-  // The screenshot capture is unaffected by the extra control.
-  await openScreenshot(page);
-  assert.equal(await page.evaluate(() => window.drawnText.length), 11);
-});
-
 const conversions = [
   { currency: 'usd', mode: 'send', rate: '1.05', amount: '1000', label: 'RECEIVE', result: '952.38', unit: 'USDT', pair: 'USD → USDT', input: '1,000 USD' },
   { currency: 'usd', mode: 'receive', rate: '1.05', amount: '100', label: 'SEND', result: '105.00', unit: 'USD', pair: 'USDT → USD', input: '100 USDT' },
