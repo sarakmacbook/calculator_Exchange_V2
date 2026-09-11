@@ -32,7 +32,7 @@ A sleek, dark-themed **P2P exchange calculator** for converting **US Dollar (USD
 | **📈 Profit Calculator** | Separate panel for buy price, sell price, and USDT amount → cost, revenue, net profit, and profit % |
 | **💹 Live Profit Row** | Side panel shows amount → converted value → profit for the current inputs, with a **%** tool for a cut of that profit |
 | **🎯 Quick Chips** | Tap 500 / 1K / 1.5K / 2K (USD) or 500K / 1M / 1.5M / 2M (IQD); Receive mode uses 50 / 100 / 200 / 500 USDT |
-| **➕ Quick Amount Math** | Use the calculator icon beside Amount to add, subtract, multiply, or divide; hitting the total applies it and closes the panel |
+| **➕ Quick Amount Math** | Use the calculator icon beside Amount to add, subtract, multiply, or divide before applying a new total |
 | **📱 PWA Ready** | Branded tab, browser shortcut, and home-screen icon on iOS & Android |
 | **🌙 Dark Mode** | Clean black theme with lime green accents |
 | **🖥️ Desktop Frame** | Phone-like centered layout on desktop |
@@ -95,9 +95,7 @@ The image contains only the conversion result, formula, unit price, amount, and 
 1. Enter an amount, for example **10**.
 2. Tap the small calculator icon beside **clear** in the amount field.
 3. Choose **+**, **−**, **×**, or **÷**, then enter another value. For example, `10 + 10` previews **20**.
-4. Tap **Use 20** (or press Enter) to put the total into the amount field, update the conversion, and close the panel.
-
-Hitting the total always closes the panel: with nothing entered yet, the muted **Use total** button just dismisses it (toast `Nothing to apply`) instead of being a dead tap, and **Escape** closes it from any control inside. Pressing Enter on an invalid value keeps the panel open so the entry can be fixed.
+4. Tap **Use 20** (or press Enter) to put the total into the amount field and update the conversion.
 
 The calculator prevents division by zero and totals of zero or less, so the exchange amount stays valid.
 
