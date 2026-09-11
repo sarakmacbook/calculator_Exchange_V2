@@ -1424,6 +1424,23 @@ function cancelScreenshotHold() {
   resultTap.classList.remove("is-holding");
 }
 
+// Shared PNGs should point back at the calculator. Public hosts print their own
+// address; file://, localhost and throwaway preview hosts fall back to the site.
+const BRAND_SITE_URL = "https://sarakmacbook.github.io/calculator_Exchange_V2";
+
+function siteUrlFor(origin, pathname, hostname) {
+  const host = String(hostname || "");
+  const ephemeral = !origin || origin === "null" || /^(localhost|0\.0\.0\.0|\[::1\])$/.test(host) || /^\d+\./.test(host) || /\.e2b\.app$/.test(host);
+  if (ephemeral) return BRAND_SITE_URL;
+  const path = String(pathname || "").replace(/\/(?:index\.html?)$/i, "").replace(/\/+$/, "");
+  return origin + path;
+}
+
+function siteUrl() {
+  const loc = window.location || {};
+  return siteUrlFor(loc.origin || "", loc.pathname || "", loc.hostname || "");
+}
+
 function getScreenshotData() {
   if (!hasScreenshotResult()) return null;
   const currency = CURRENCY_CONFIG[currentCurrency].amtLabel;
@@ -1438,6 +1455,7 @@ function getScreenshotData() {
     rate: formatInput(rateEl.value) + " " + currency + "/USDT",
     amountLabel: currentMode === "send" ? "Amount sent" : "Amount to receive",
     amount: formatInput(amtEl.value) + " " + (currentMode === "send" ? currency : "USDT"),
+    url: siteUrl(),
     filename: "exchange-result-" + currentCurrency + "-" + currentMode + ".png"
   };
 }
@@ -1483,6 +1501,11 @@ function createScreenshotBlob(data) {
   text(data.rate, 552, 320, 16, "#ffffff", "right", 320, 600);
   text(data.amountLabel, 48, 362, 13, "#909090");
   text(data.amount, 552, 362, 16, "#ffffff", "right", 320, 600);
+
+  // Footer: the site URL, so a saved or shared PNG says where it came from.
+  ctx.fillStyle = "#242424";
+  ctx.fillRect(190, 397, 220, 1);
+  text(data.url, 300, 413, 12, "#909090", "center", 480, 600);
 
   return new Promise((resolve, reject) => {
     canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error("PNG export failed")), "image/png");

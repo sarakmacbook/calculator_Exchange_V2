@@ -177,7 +177,8 @@ for (const conversion of conversions) {
     assert.deepEqual(drawn, [
       'EXCHANGE CALCULATOR', conversion.pair, conversion.label, conversion.result, conversion.unit,
       await page.locator('#outsub').textContent(), 'Unit price', rate,
-      conversion.mode === 'send' ? 'Amount sent' : 'Amount to receive', conversion.input
+      conversion.mode === 'send' ? 'Amount sent' : 'Amount to receive', conversion.input,
+      new URL(page.url()).origin
     ]);
     const downloadPromise = page.waitForEvent('download');
     await page.click('#screenshotDownload');
@@ -190,6 +191,28 @@ for (const conversion of conversions) {
     assert.deepEqual(png, await pngBytes(page));
   });
 }
+
+test('the PNG footer prints the site URL, falling back to the public site for local files', async t => {
+  const page = await calculator(t);
+  await setValues(page);
+  await openScreenshot(page);
+  const drawn = await page.evaluate(() => window.drawnText);
+  assert.equal(drawn[drawn.length - 1], new URL(page.url()).origin, 'the last thing drawn is the site URL');
+  assert.doesNotMatch(drawn.slice(0, -1).join('\n'), /https?:\/\//, 'the URL is printed once, in the footer only');
+
+  const cases = await page.evaluate(() => [
+    siteUrlFor('https://sarakmacbook.github.io', '/calculator_Exchange_V2/index.html', 'sarakmacbook.github.io'),
+    siteUrlFor('https://calc.example.com', '/deeper/', 'calc.example.com'),
+    siteUrlFor('http://localhost:8080', '/', 'localhost'),
+    siteUrlFor('http://192.168.1.5:80', '/', '192.168.1.5'),
+    siteUrlFor('https://8080-demo.e2b.app', '/', '8080-demo.e2b.app'),
+    siteUrlFor('null', '/home/user/index.html', '')
+  ]);
+  const brand = 'https://sarakmacbook.github.io/calculator_Exchange_V2';
+  assert.deepEqual(cases, [
+    brand, 'https://calc.example.com/deeper', brand, brand, brand, brand
+  ], 'real hosts are printed as-is; file://, localhost, IPs and preview hosts use the public URL');
+});
 
 test('all profit panels are excluded, remain unchanged, and export works offline', async t => {
   const page = await calculator(t);
@@ -229,7 +252,7 @@ test('mouse hold captures once after 650ms, with a visible hold indicator', asyn
   await page.clock.runFor(100);
   await page.waitForSelector('#screenshotDialog[open]');
   await page.clock.runFor(2000);
-  assert.equal(await page.evaluate(() => window.drawnText.length), 10);
+  assert.equal(await page.evaluate(() => window.drawnText.length), 11);
   await page.mouse.up();
   assert.equal(await page.locator('#resulttap').evaluate(el => el.classList.contains('is-holding')), false);
 });
