@@ -5,7 +5,9 @@
 
 [![Deploy to GitHub Pages](https://img.shields.io/badge/Deploy%20to-GitHub%20Pages-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/sarakmacbook/calculator_Exchange_V2/actions/workflows/pages.yml)
 
-> Click **Deploy to GitHub Pages** to open the deployment workflow, then select **Run workflow**. GitHub write access is required.
+> **First deployment:** A repository administrator must [enable GitHub Pages](https://github.com/sarakmacbook/calculator_Exchange_V2/settings/pages) and set **Source** to **GitHub Actions**.
+>
+> Then click **Deploy to GitHub Pages** to open the workflow and select **Run workflow**. GitHub write access is required.
 
 A sleek, dark-themed **P2P exchange calculator** for converting **US Dollar (USD)** and **Iraqi Dinar (IQD)** to **USDT**. Built as a tiny static site — zero dependencies, blazing fast, and fully responsive across **all devices**.
 
