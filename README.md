@@ -23,7 +23,7 @@ A sleek, dark-themed **P2P exchange calculator** for converting **US Dollar (USD
 | **📱 PWA Ready** | Branded tab, browser shortcut, and home-screen icon on iOS & Android |
 | **🌙 Dark Mode** | Clean black theme with lime green accents |
 | **🖥️ Desktop Frame** | Phone-like centered layout on desktop |
-| **📸 Private Result Screenshot** | Hold the conversion result to save a PNG without any profit or percentage data |
+| **📸 Private Result Screenshot** | Hold the conversion result to save a PNG — no profit or percentage data, plus the site URL in the footer |
 | **📋 Tap to Copy** | Quick-tap the result to copy the number to the clipboard |
 
 ### Currency and direction
@@ -40,7 +40,7 @@ The header row is a single line: the **Currency** dropdown on the left (USD or I
 2. **Hold the main result for about 0.65 seconds** (with a keyboard: focus the result and press Enter/Space).
 3. Preview the image and choose **Save PNG**, or **Share** on browsers that support image sharing. On mobile, you can also hold the preview image to save it.
 
-The image contains only the conversion result, formula, unit price, and amount. All profit and percentage panels are excluded, even when open; the calculator's values and panels are left unchanged. Short taps and scrolling do not capture an image. PNGs are generated locally using native canvas, with no upload, external library, or network connection required.
+The image contains only the conversion result, formula, unit price, amount, and a footer with the **site URL** so anyone it gets forwarded to can find the calculator. The footer prints the address the page is actually served from — e.g. `https://calc.example.com` on your own domain, or `https://sarakmacbook.github.io/calculator_Exchange_V2` on GitHub Pages — and falls back to that public URL when the page is opened from `file://`, `localhost`, a raw IP, or a throwaway preview host. All profit and percentage panels are excluded, even when open; the calculator's values and panels are left unchanged. Short taps and scrolling do not capture an image. PNGs are generated locally using native canvas, with no upload, external library, or network connection required.
 
 **Tap to copy:** a quick tap (without holding) on the main result copies the numeric result to your clipboard, so you can paste it anywhere. Hold still opens the screenshot.
 
