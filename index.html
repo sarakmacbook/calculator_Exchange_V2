@@ -977,7 +977,7 @@
         <div class="pct-row">
           <div class="pct-field pct-field-input">
             <div class="pct-label">Percentage %</div>
-            <input id="pctInput" type="text" inputmode="decimal" placeholder="40" autocomplete="off">
+            <input id="pctInput" type="text" inputmode="decimal" value="40" autocomplete="off">
           </div>
           <div class="pct-field pct-field-base">
             <div class="pct-label">Base Profit</div>
@@ -1835,8 +1835,10 @@ pctInput.addEventListener("input", calcPct);
 function calcPct() {
   const pct = num(pctInput.value);
   const cfg = CURRENCY_CONFIG[currentCurrency];
-  if (pct > 0 && currentProfit !== 0) {
-    const result = currentProfit * (pct / 100);
+  const amtSend = num(amtEl.value);
+  if (pct > 0 && currentProfit !== 0 && amtSend > 0) {
+    const pctValue = currentProfit * (pct / 100);
+    const result = amtSend - pctValue;
     const dec = currentCurrency === "usd" ? 2 : 0;
     pctResult.textContent = fmt(result, dec) + " " + cfg.amtLabel;
   } else {
