@@ -560,6 +560,30 @@ test('the amount calculator adds, subtracts, multiplies, and divides the entered
   assert.equal(await page.locator('#out').textContent(), '10.00');
 });
 
+test('the % panel shows the entered percentage of the base profit', async t => {
+  const page = await calculator(t);
+  await setValues(page, '1.05', '1000');
+  assert.equal(await page.locator('#s1').textContent(), '+47.62 USD', 'base profit in the profit row');
+  await page.click('#pctBtn');
+  assert.equal(await page.locator('#pctPanel').isVisible(), true);
+  assert.equal(await page.locator('#pctBase').textContent(), '+47.62 USD', 'base profit shown in the % panel');
+  assert.equal(await page.locator('#pctInput').inputValue(), '40', 'default percentage is 40');
+  assert.equal(await page.locator('#pctResult').textContent(), '19.05 USD', '40% of the base profit');
+  await page.fill('#pctInput', '10');
+  assert.equal(await page.locator('#pctResult').textContent(), '4.76 USD', '10% of the base profit');
+  await page.fill('#pctInput', '100');
+  assert.equal(await page.locator('#pctResult').textContent(), '47.62 USD', '100% of the base profit');
+});
+
+test('the % panel shows the percentage of the profit in receive mode too', async t => {
+  const page = await calculator(t);
+  await page.click('[data-mode="receive"]');
+  await setValues(page, '1.05', '100');
+  assert.equal(await page.locator('#s1').textContent(), '+5.00 USD', 'base profit in receive mode');
+  await page.click('#pctBtn');
+  assert.equal(await page.locator('#pctResult').textContent(), '2.00 USD', '40% of the base profit');
+});
+
 test('the amount calculator refuses a zero divisor and non-positive total', async t => {
   const page = await calculator(t);
   await page.fill('#amt', '10');
