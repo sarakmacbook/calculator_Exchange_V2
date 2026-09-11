@@ -365,6 +365,50 @@
     .chip { padding:10px 0; font-size:14px; border-radius:14px; }
   }
 
+  /* Demo "Deploy to GitHub" button — a mock. No network, no GitHub calls. */
+  .deploy-demo { margin-top:12px; background:#181818; border-radius:16px; padding:12px 14px; }
+  .deploy-demo-btn {
+    display:flex; align-items:center; gap:8px; width:100%;
+    background:#c5f000; color:#000; border:none; border-radius:12px;
+    padding:11px 12px; font-family:inherit; font-size:14px; font-weight:700; cursor:pointer;
+    transition: background .2s, opacity .2s;
+  }
+  .deploy-demo-btn:hover:not(:disabled) { background:#d3f53d; }
+  .deploy-demo-btn:active:not(:disabled) { opacity:.85; }
+  .deploy-demo-btn:focus-visible { outline:none; box-shadow:0 0 0 2px #000, 0 0 0 4px #c5f000; }
+  .deploy-demo-btn:disabled { background:#2a2a2a; color:#909090; cursor:progress; }
+  .deploy-demo-btn svg { width:16px; height:16px; fill:currentColor; flex-shrink:0; }
+  .deploy-demo-btn.is-busy svg { animation:deployDemoSpin 900ms linear infinite; }
+  @keyframes deployDemoSpin { to { transform:rotate(360deg); } }
+  .deploy-demo-tag {
+    margin-left:auto; font-size:9px; font-weight:800; letter-spacing:.7px; text-transform:uppercase;
+    border:1px solid currentColor; border-radius:5px; padding:1px 5px; opacity:.65;
+  }
+  .deploy-demo-track { display:none; height:4px; margin-top:10px; background:#000; border-radius:4px; overflow:hidden; }
+  .deploy-demo.open .deploy-demo-track { display:block; }
+  .deploy-demo-fill { height:100%; width:0; background:#c5f000; border-radius:4px; transition: width .35s ease; }
+  .deploy-demo-log { display:none; margin-top:10px; list-style:none; font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:11px; color:#909090; }
+  .deploy-demo.open .deploy-demo-log { display:block; }
+  .deploy-demo-log li { display:flex; gap:6px; padding:2px 0; }
+  .deploy-demo-log li::before { content:"\2713"; color:#c5f000; }
+  .deploy-demo-url { display:none; margin-top:8px; font-size:12px; font-weight:600; color:#c5f000; word-break:break-all; }
+  .deploy-demo.done .deploy-demo-url { display:block; }
+  .deploy-demo-actions { display:flex; align-items:center; gap:10px; margin-top:8px; }
+  .deploy-demo-reset {
+    display:none; background:transparent; border:1px solid #3d3d3d; border-radius:8px;
+    color:#909090; font-family:inherit; font-size:11px; font-weight:600; padding:6px 10px; cursor:pointer;
+  }
+  .deploy-demo.done .deploy-demo-reset { display:inline-block; }
+  .deploy-demo-reset:hover { color:#c5f000; border-color:#c5f000; }
+  .deploy-demo-note { margin-top:8px; font-size:10px; line-height:1.45; color:#5a5a5a; }
+  @media (prefers-reduced-motion: reduce) {
+    .deploy-demo-btn.is-busy svg { animation:none; }
+    .deploy-demo-fill { transition:none; }
+  }
+  @media (min-width: 768px) {
+    .deploy-demo { margin-top:14px; }
+  }
+
   .scale { margin-top:auto; padding-top:16px; padding-bottom:28px; }
   .scale .srow {
     display:flex; justify-content:space-between; padding:7px 4px;
@@ -964,6 +1008,21 @@
       <button class="chip" data-v="2000">2K</button>
     </div>
 
+    <!-- Deploy demo: a mock button for demos. It never talks to GitHub. -->
+    <section class="deploy-demo" id="deployDemoPanel" aria-labelledby="deployDemoLabel">
+      <button class="deploy-demo-btn" id="deployDemoBtn" type="button" aria-describedby="deployDemoNote">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2c-3.9 0-7 3.1-7 7 0 4.2 4.4 9.9 6.3 12.1.4.5 1 .5 1.4 0C14.6 18.9 19 13.2 19 9c0-3.9-3.1-7-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg>
+        <span id="deployDemoLabel">Deploy to GitHub</span>
+        <span class="deploy-demo-tag">demo</span>
+      </button>
+      <div class="deploy-demo-track" aria-hidden="true"><div class="deploy-demo-fill" id="deployDemoFill"></div></div>
+      <ul class="deploy-demo-log" id="deployDemoLog" role="status" aria-live="polite"></ul>
+      <div class="deploy-demo-url" id="deployDemoUrl" hidden></div>
+      <div class="deploy-demo-actions">
+        <button class="deploy-demo-reset" id="deployDemoReset" type="button">Reset demo</button>
+      </div>
+      <div class="deploy-demo-note" id="deployDemoNote">Demo only — this button is a mock. It runs no GitHub Action, changes no setting, and publishes nothing.</div>
+    </section>
 
     </div><!-- /main-content -->
     <div class="side-panel">
@@ -1852,6 +1911,72 @@ function updatePctBase() {
   pctBase.textContent = (currentProfit >= 0 ? "+" : "") + fmt(currentProfit, dec) + " " + cfg.amtLabel;
   calcPct();
 }
+
+// ===== DEMO "DEPLOY TO GITHUB" (MOCK — no fetch, no network, no GitHub state) =====
+const deployDemoPanel = document.getElementById("deployDemoPanel");
+const deployDemoBtn = document.getElementById("deployDemoBtn");
+const deployDemoBtnLabel = document.getElementById("deployDemoLabel");
+const deployDemoFill = document.getElementById("deployDemoFill");
+const deployDemoLog = document.getElementById("deployDemoLog");
+const deployDemoUrl = document.getElementById("deployDemoUrl");
+const deployDemoReset = document.getElementById("deployDemoReset");
+const DEPLOY_DEMO_STAGES = [
+  { ms: 420, text: "Build static site · index.html + icons" },
+  { ms: 520, text: "Upload pages-artifact · _site/" },
+  { ms: 560, text: "actions/deploy-pages · github-pages environment" },
+  { ms: 460, text: "Publish Pages build" }
+];
+let deployDemoTimers = [];
+let deployDemoRunning = false;
+
+function resetDeployDemo() {
+  deployDemoTimers.forEach(clearTimeout);
+  deployDemoTimers = [];
+  deployDemoRunning = false;
+  deployDemoPanel.classList.remove("open", "done");
+  deployDemoBtn.classList.remove("is-busy");
+  deployDemoBtn.disabled = false;
+  deployDemoBtnLabel.textContent = "Deploy to GitHub";
+  deployDemoFill.style.width = "0%";
+  deployDemoLog.innerHTML = "";
+  deployDemoUrl.hidden = true;
+  deployDemoUrl.textContent = "";
+}
+
+function runDeployDemo() {
+  if (deployDemoRunning) return;
+  deployDemoRunning = true;
+  deployDemoBtn.disabled = true;
+  deployDemoBtn.classList.add("is-busy");
+  deployDemoPanel.classList.add("open");
+  deployDemoPanel.classList.remove("done");
+  deployDemoLog.innerHTML = "";
+  deployDemoUrl.hidden = true;
+  deployDemoBtnLabel.textContent = "Deploying\u2026";
+  let elapsed = 0;
+  DEPLOY_DEMO_STAGES.forEach((stage, index) => {
+    elapsed += stage.ms;
+    deployDemoTimers.push(setTimeout(() => {
+      const line = document.createElement("li");
+      line.textContent = stage.text;
+      deployDemoLog.appendChild(line);
+      deployDemoFill.style.width = Math.round(((index + 1) / DEPLOY_DEMO_STAGES.length) * 100) + "%";
+      if (index === DEPLOY_DEMO_STAGES.length - 1) {
+        // Keep the mock honest: name the URL, then say it is not real.
+        deployDemoUrl.textContent = "Live at " + BRAND_SITE_URL + " \u2014 not published; demo only";
+        deployDemoUrl.hidden = false;
+        deployDemoPanel.classList.add("done");
+        deployDemoBtn.classList.remove("is-busy");
+        deployDemoBtn.disabled = false;
+        deployDemoBtnLabel.textContent = "Deployed";
+        deployDemoRunning = false;
+      }
+    }, elapsed));
+  });
+}
+
+deployDemoBtn.addEventListener("click", runDeployDemo);
+deployDemoReset.addEventListener("click", resetDeployDemo);
 
 updateUI(); render();
 </script>
