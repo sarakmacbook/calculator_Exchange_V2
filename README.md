@@ -38,7 +38,6 @@ A sleek, dark-themed **P2P exchange calculator** for converting **US Dollar (USD
 | **🖥️ Desktop Frame** | Phone-like centered layout on desktop |
 | **📸 Private Result Screenshot** | Hold the conversion result to save a PNG — no profit or percentage data, plus the site URL in the footer |
 | **📋 Tap to Copy** | Quick-tap the result to copy the number to the clipboard |
-| **🚀 Demo Deploy Button** | A **Deploy to GitHub** button that plays a mock Pages deploy — labelled `demo`, publishes nothing |
 | **🧹 Fresh on Refresh** | No localStorage — rate and amount reset to defaults every time you reload (privacy-friendly) |
 
 ### Currency and direction
@@ -100,18 +99,6 @@ The image contains only the conversion result, formula, unit price, amount, and 
 Hitting the total always closes the panel: with nothing entered yet, the muted **Use total** button just dismisses it (toast `Nothing to apply`) instead of being a dead tap, and **Escape** closes it from any control inside. Pressing Enter on an invalid value keeps the panel open so the entry can be fixed.
 
 The calculator prevents division by zero and totals of zero or less, so the exchange amount stays valid.
-
----
-
-### Demo deploy button
-
-At the bottom of the calculator there's a **Deploy to GitHub** button tagged `demo`. It exists only so the app can be shown in demos and screenshots as if it were deployable:
-
-1. Tap it and the panel plays four fake Pages stages — build, upload artifact, `deploy-pages`, publish — with a progress bar.
-2. It finishes with `Live at https://sarakmacbook.github.io/calculator_Exchange_V2 — not published; demo only`.
-3. **Reset demo** puts it back to idle, so you can replay it.
-
-Nothing is deployed. The button issues no `fetch`, `XMLHttpRequest`, beacon, or navigation, needs no token, and changes no calculator state — the conversion, currency dropdown, Send/Receive switch, tap-to-copy and hold-to-screenshot all behave exactly as before. For a real deploy, use the instructions below.
 
 ## 📱 Responsive Design
 
@@ -232,8 +219,6 @@ Upload `index.html` together with `manifest.webmanifest` and the icon files — 
 │                           │
 │  [500][1K][1.5K][2K]      │
 │                           │
-│  [ Deploy to GitHub demo ]│
-│                           │
 │  Amount → USDT = Profit   │
 │  500 USD  500.00  +0.00 % │
 └───────────────────────────┘
@@ -261,8 +246,6 @@ Upload `index.html` together with `manifest.webmanifest` and the icon files — 
         │   USD                                  │
         │                                        │
         │  [500][1K][1.5K][2K]                   │
-        │                                        │
-        │  [ Deploy to GitHub  · demo ]          │
         │                                        │
         │   Amount → USDT = Profit               │
         │   500 USD · 500.00 USDT · +0.00  [%]   │
@@ -330,7 +313,7 @@ npx playwright install chromium
 node --test tests/screenshot.test.cjs
 ```
 
-The tests serve the page internally (no dev server needed) and cover the merged Currency dropdown (left) with the Send/Receive switcher (right) at both 1280px and 320px, plus USD/IQD in both modes, real mouse/touch holds, gesture cancellation, profit exclusion, PNG downloads (including the site-URL footer), keyboard access, small-screen layout, sharing fallbacks, export errors, and the demo-only Deploy button (idle → busy → done → reset, zero network calls, calculator still works afterwards). A custom browser installation can be supplied with `CHROMIUM_EXECUTABLE_PATH` and, if needed, `CHROMIUM_ARGS` (a JSON array).
+The tests serve the page internally (no dev server needed) and cover the merged Currency dropdown (left) with the Send/Receive switcher (right) at both 1280px and 320px, plus USD/IQD in both modes, real mouse/touch holds, gesture cancellation, profit exclusion, PNG downloads (including the site-URL footer), keyboard access, small-screen layout, sharing fallbacks and export errors. A custom browser installation can be supplied with `CHROMIUM_EXECUTABLE_PATH` and, if needed, `CHROMIUM_ARGS` (a JSON array).
 
 ---
 
@@ -340,7 +323,6 @@ Recent updates reflected in this README:
 
 | Update | Detail |
 |--------|--------|
-| **Demo Deploy button** | Mock “Deploy to GitHub” flow with progress stages — tagged `demo`, publishes nothing |
 | **Screenshot site URL** | Hold-to-screenshot PNGs stamp the live site address in the footer (with safe fallbacks) |
 | **Currency dropdown** | USD/IQD tabs replaced by one dropdown; Send/Receive sits on the same header row |
 | **Find Unit Price** | Reverse rate from amount paid + USDT received |
