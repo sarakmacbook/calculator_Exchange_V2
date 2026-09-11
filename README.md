@@ -3,6 +3,10 @@
 > **Live Demo:** [https://sarakmacbook.github.io/calculator_Exchange_V2/](https://sarakmacbook.github.io/calculator_Exchange_V2/)  
 > **GitHub:** [https://github.com/sarakmacbook/calculator_Exchange_V2](https://github.com/sarakmacbook/calculator_Exchange_V2)
 
+[![Deploy to GitHub Pages](https://img.shields.io/badge/Deploy%20to-GitHub%20Pages-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/sarakmacbook/calculator_Exchange_V2/actions/workflows/pages.yml)
+
+> Click **Deploy to GitHub Pages** to open the deployment workflow, then select **Run workflow**. GitHub write access is required.
+
 A sleek, dark-themed **P2P exchange calculator** for converting **US Dollar (USD)** and **Iraqi Dinar (IQD)** to **USDT**. Built as a tiny static site — zero dependencies, blazing fast, and fully responsive across **all devices**.
 
 ![Dark Theme](https://img.shields.io/badge/theme-dark-black?style=flat-square) ![PWA Ready](https://img.shields.io/badge/PWA-ready-c5f000?style=flat-square) ![Zero Dependencies](https://img.shields.io/badge/deps-zero-success?style=flat-square) ![Responsive](https://img.shields.io/badge/responsive-all_devices-blue?style=flat-square) ![Made by AI](https://img.shields.io/badge/made_by_AI-Kimi_2.6-c5f000?style=flat-square)
