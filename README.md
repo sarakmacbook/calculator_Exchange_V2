@@ -25,6 +25,7 @@ A sleek, dark-themed **P2P exchange calculator** for converting **US Dollar (USD
 | **🖥️ Desktop Frame** | Phone-like centered layout on desktop |
 | **📸 Private Result Screenshot** | Hold the conversion result to save a PNG — no profit or percentage data, plus the site URL in the footer |
 | **📋 Tap to Copy** | Quick-tap the result to copy the number to the clipboard |
+| **🚀 Demo Deploy Button** | A **Deploy to GitHub** button that plays a mock Pages deploy — labelled `demo`, publishes nothing |
 
 ### Currency and direction
 
@@ -54,6 +55,16 @@ The image contains only the conversion result, formula, unit price, amount, and 
 The calculator prevents division by zero and totals of zero or less, so the exchange amount stays valid.
 
 ---
+
+### Demo deploy button
+
+At the bottom of the calculator there's a **Deploy to GitHub** button tagged `demo`. It exists only so the app can be shown in demos and screenshots as if it were deployable:
+
+1. Tap it and the panel plays four fake Pages stages — build, upload artifact, `deploy-pages`, publish — with a progress bar.
+2. It finishes with `Live at https://sarakmacbook.github.io/calculator_Exchange_V2 — not published; demo only`.
+3. **Reset demo** puts it back to idle, so you can replay it.
+
+Nothing is deployed. The button issues no `fetch`, `XMLHttpRequest`, beacon, or navigation, needs no token, and changes no calculator state — the conversion, currency dropdown, Send/Receive switch, tap-to-copy and hold-to-screenshot all behave exactly as before. For a real deploy, use the instructions below.
 
 ## 📱 Responsive Design
 
