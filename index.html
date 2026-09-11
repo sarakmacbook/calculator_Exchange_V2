@@ -1867,10 +1867,8 @@ pctInput.addEventListener("input", calcPct);
 function calcPct() {
   const pct = num(pctInput.value);
   const cfg = CURRENCY_CONFIG[currentCurrency];
-  const amtSend = num(amtEl.value);
-  if (pct > 0 && currentProfit !== 0 && amtSend > 0) {
-    const pctValue = currentProfit * (pct / 100);
-    const result = amtSend - pctValue;
+  if (pct > 0 && currentProfit !== 0) {
+    const result = currentProfit * (pct / 100);
     const dec = currentCurrency === "usd" ? 2 : 0;
     pctResult.textContent = fmt(result, dec) + " " + cfg.amtLabel;
   } else {
