@@ -202,6 +202,114 @@ for (const conversion of conversions) {
   });
 }
 
+// ===== USDT (Tether) LOGO =====
+// Reads the exported PNG back and reports every Tether-green pixel it finds.
+async function tetherBadge(page) {
+  return page.evaluate(async () => {
+    const image = document.getElementById('screenshotImage');
+    await image.decode();
+    const canvas = document.createElement('canvas');
+    canvas.width = image.naturalWidth;
+    canvas.height = image.naturalHeight;
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    ctx.drawImage(image, 0, 0);
+    const { data } = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const isGreen = (r, g, b) => Math.abs(r - 0x26) < 45 && Math.abs(g - 0xa1) < 45 && Math.abs(b - 0x7b) < 45 && g > r + 30 && g > b + 20;
+    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity, green = 0, white = 0;
+    for (let y = 0; y < canvas.height; y++) {
+      for (let x = 0; x < canvas.width; x++) {
+        const i = (y * canvas.width + x) * 4;
+        if (!isGreen(data[i], data[i + 1], data[i + 2])) continue;
+        green++;
+        minX = Math.min(minX, x); maxX = Math.max(maxX, x);
+        minY = Math.min(minY, y); maxY = Math.max(maxY, y);
+      }
+    }
+    if (!green) return { green: 0, white: 0, minX: 0, maxX: -1, minY: 0, maxY: -1, centre: 0, rowRight: 0 };
+    // The white ₮ mark has to be punched out of the coin, not just a green disc.
+    for (let y = minY; y <= maxY; y++) {
+      for (let x = minX; x <= maxX; x++) {
+        const i = (y * canvas.width + x) * 4;
+        if (data[i] > 230 && data[i + 1] > 230 && data[i + 2] > 230) white++;
+      }
+    }
+    // Everything inked beside the badge on its own centre line, to prove the row is centred.
+    const centre = Math.round((minY + maxY) / 2);
+    let rowRight = -Infinity;
+    for (let y = Math.max(0, centre - 12); y <= Math.min(canvas.height - 1, centre + 12); y++) {
+      for (let x = maxX + 1; x < canvas.width; x++) {
+        const i = (y * canvas.width + x) * 4;
+        if (data[i] > 60 || data[i + 1] > 60 || data[i + 2] > 60) rowRight = Math.max(rowRight, x);
+      }
+    }
+    return { green, white, minX, maxX, minY, maxY, centre, rowRight };
+  });
+}
+
+test('the result shows the USDT logo on screen, and only beside USDT', async t => {
+  const page = await calculator(t);
+  const badge = await page.locator('#outunit .usdt-logo');
+  assert.equal(await badge.count(), 1, 'the USDT unit carries the inline logo');
+  assert.equal(await badge.evaluate(el => el.getAttribute('viewBox')), '0 0 32 32');
+  assert.equal(await page.locator('#outunit').getAttribute('aria-label'), 'USDT (Tether)');
+  assert.equal(await page.locator('#outunit').getAttribute('role'), 'img');
+  assert.equal((await page.locator('#outunit').textContent()).trim(), 'USDT', 'the logo keeps a readable USDT label');
+
+  await page.click('[data-mode="receive"]');
+  assert.equal(await page.locator('#outunit .usdt-logo').count(), 0, 'the USD side gets no Tether badge');
+  assert.equal(await page.locator('#outunit').getAttribute('aria-label'), null);
+});
+
+for (const badgeCase of [{ currency: 'usd', rate: '1.05', amount: '1000' }, { currency: 'iqd', rate: '1500', amount: '1500000' }]) {
+  test(`the ${badgeCase.currency.toUpperCase()} send screenshot wears the Tether badge beside USDT`, async t => {
+    const page = await calculator(t);
+    if (badgeCase.currency !== 'usd') await page.selectOption('#currency', badgeCase.currency);
+    await setValues(page, badgeCase.rate, badgeCase.amount);
+    await openScreenshot(page);
+    const badge = await tetherBadge(page);
+    assert.ok(badge.green > 500, `the badge is drawn, not just declared (${badge.green} green px)`);
+    const size = badge.maxX - badge.minX + 1;
+    assert.ok(Math.abs(size - 48) <= 4 && Math.abs((badge.maxY - badge.minY + 1) - size) <= 2, `the coin is round and ${size}px wide`);
+    assert.ok(badge.white > 100, 'the white Tether mark sits inside the coin');
+    assert.ok(badge.minY > 356 && badge.maxY < 476, `the badge rides the unit row only, clear of the result and the formula (y ${badge.minY}-${badge.maxY})`);
+    assert.ok(badge.rowRight > badge.maxX + 20, 'the USDT label still follows the badge');
+    const rowCentre = (badge.minX + badge.rowRight) / 2;
+    assert.ok(Math.abs(rowCentre - 600) < 16, `badge + label stay centred (row centre ${rowCentre})`);
+    assert.deepEqual(await page.evaluate(() => window.drawnText.filter(x => x === 'USDT')), ['USDT'], 'USDT is still printed once, as text');
+  });
+}
+
+test('the receive screenshot keeps the currency unit badge-free', async t => {
+  const page = await calculator(t);
+  await page.click('[data-mode="receive"]');
+  await setValues(page, '1.05', '100');
+  await openScreenshot(page);
+  assert.equal(await page.locator('#outunit').textContent(), 'USD');
+  assert.equal((await tetherBadge(page)).green, 0, 'no Tether coin next to USD');
+  assert.match(await page.locator('#screenshotImage').getAttribute('alt'), /105\.00 USD\./);
+
+  await page.click('#screenshotClose');
+  await page.click('[data-mode="send"]');
+  await setValues(page, '1.05', '1000');
+  await openScreenshot(page);
+  assert.match(await page.locator('#screenshotImage').getAttribute('alt'), /952\.38 USDT \(Tether logo\)\./, 'the alt text mentions the badge the PNG shows');
+  assert.ok((await tetherBadge(page)).green > 500, 'the badge returns as soon as the result is USDT again');
+});
+
+test('the PNG renderer only reads fields the screenshot data still provides', async () => {
+  // The screenshot data is an explicit allowlist; this keeps a new draw call from
+  // reading a field that was dropped (e.g. the formula) or an unlisted one (e.g. profit).
+  const provider = html.slice(html.indexOf('function getScreenshotData()'), html.indexOf('function createScreenshotBlob'));
+  const renderer = html.slice(html.indexOf('function createScreenshotBlob'), html.indexOf('function clearScreenshot'));
+  const provided = new Set([...provider.matchAll(/^\s{4}([a-zA-Z]+):/gm)].map(m => m[1]));
+  const used = new Set([...renderer.matchAll(/\bdata\.([a-zA-Z]+)/g)].map(m => m[1]));
+  assert.deepEqual([...used].filter(key => !provided.has(key)), [], 'every field the PNG draws must come from getScreenshotData()');
+  for (const key of ['label', 'result', 'unit', 'usdt', 'formula', 'pair', 'rate', 'amountLabel', 'amount', 'url', 'filename']) {
+    assert.ok(provided.has(key), `${key} is still part of the screenshot data`);
+  }
+  assert.match(provider, /usdt:\s*unit === "USDT"/, 'the badge is driven by the unit that is actually printed');
+});
+
 test('the PNG footer prints the site URL, falling back to the public site for local files', async t => {
   const page = await calculator(t);
   await setValues(page);
