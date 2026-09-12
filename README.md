@@ -94,7 +94,7 @@ The image contains only the conversion result, formula, unit price, amount, and 
 1. Enter an amount, for example **10**.
 2. Tap the small calculator icon beside **clear** in the amount field.
 3. Choose **+**, **−**, **×**, or **÷**, then enter another value. For example, `10 + 10` previews **20**.
-4. Tap **Use 20** (or press Enter) to put the total into the amount field and update the conversion.
+4. Tap **Use 20** (or press Enter) to put the total into the amount field — the panel closes automatically and the conversion updates.
 
 The calculator prevents division by zero and totals of zero or less, so the exchange amount stays valid.
 
