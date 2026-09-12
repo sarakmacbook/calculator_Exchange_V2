@@ -37,6 +37,7 @@ A sleek, dark-themed **P2P exchange calculator** for converting **US Dollar (USD
 | **🌙 Dark Mode** | Clean black theme with lime green accents |
 | **🖥️ Desktop Frame** | Phone-like centered layout on desktop |
 | **📸 Private Result Screenshot** | Hold the conversion result to save a PNG — no profit or percentage data, plus the site URL in the footer |
+| **🪙 USDT Logo** | The official Tether mark sits beside every USDT unit — on the result row and inside the exported PNG |
 | **📋 Tap to Copy** | Quick-tap the result to copy the number to the clipboard |
 | **🧹 Fresh on Refresh** | No localStorage — rate and amount reset to defaults every time you reload (privacy-friendly) |
 
@@ -86,6 +87,8 @@ Tap the **%** button on that row to open a small panel that takes a percentage o
 3. Preview the image and choose **Save PNG**, or **Share** on browsers that support image sharing. On mobile, you can also hold the preview image to save it.
 
 The image contains only the conversion result, formula, unit price, amount, and a footer with the **site URL** so anyone it gets forwarded to can find the calculator. The footer prints the address the page is actually served from — e.g. `https://calc.example.com` on your own domain, or `https://sarakmacbook.github.io/calculator_Exchange_V2` on GitHub Pages — and falls back to that public URL when the page is opened from `file://`, `localhost`, a raw IP, or a throwaway preview host. All profit and percentage panels are excluded, even when open; the calculator's values and panels are left unchanged. Short taps and scrolling do not capture an image. PNGs are generated locally using native canvas, with no upload, external library, or network connection required.
+
+**USDT wears its logo:** whenever the result unit is USDT, the PNG prints the Tether coin next to the label — the same vector path the on-screen result row uses, drawn straight into the canvas (no icon font, no image file, so the export still works offline and the mark stays sharp at any zoom). USD and IQD results stay plain text, because the badge belongs to USDT only.
 
 **Tap to copy:** a quick tap (without holding) on the main result copies the numeric result to your clipboard, so you can paste it anywhere. Hold still opens the screenshot.
 
@@ -325,6 +328,7 @@ Recent updates reflected in this README:
 
 | Update | Detail |
 |--------|--------|
+| **USDT logo** | The Tether badge rides the USDT result row and is drawn into every exported PNG (USD/IQD stay plain text) |
 | **Screenshot site URL** | Hold-to-screenshot PNGs stamp the live site address in the footer (with safe fallbacks) |
 | **Currency dropdown** | USD/IQD tabs replaced by one dropdown; Send/Receive sits on the same header row |
 | **Find Unit Price** | Reverse rate from amount paid + USDT received |
