@@ -496,15 +496,17 @@ test('the amount calculator adds, subtracts, multiplies, and divides the entered
   const page = await calculator(t);
   await page.fill('#amt', '10');
   assert.equal(await page.locator('#amountCalcToggle').isEnabled(), true);
-  await page.click('#amountCalcToggle');
-  assert.equal(await page.locator('#amountCalcPanel').isVisible(), true);
 
   const calculate = async (operation, operand, total) => {
+    await page.click('#amountCalcToggle');
+    assert.equal(await page.locator('#amountCalcPanel').isVisible(), true);
     await page.click(`[data-amount-operation="${operation}"]`);
     await page.fill('#amountCalcOperand', operand);
     assert.equal(await page.locator('#amountCalcResult').textContent(), `${total} USD`);
     await page.click('#amountCalcApply');
     assert.equal(await page.locator('#amt').inputValue(), total);
+    assert.equal(await page.locator('#amountCalcPanel').isHidden(), true, 'the panel closes after applying the new amount');
+    assert.equal(await page.locator('#amountCalcToggle').getAttribute('aria-expanded'), 'false');
   };
 
   await calculate('+', '10', '20');
@@ -512,6 +514,18 @@ test('the amount calculator adds, subtracts, multiplies, and divides the entered
   await calculate('*', '2', '30');
   await calculate('/', '3', '10');
   assert.equal(await page.locator('#out').textContent(), '10.00');
+});
+
+test('pressing Enter applies the new amount and closes the panel too', async t => {
+  const page = await calculator(t);
+  await page.fill('#amt', '100');
+  await page.click('#amountCalcToggle');
+  await page.click('[data-amount-operation="*"]');
+  await page.fill('#amountCalcOperand', '2');
+  await page.press('#amountCalcOperand', 'Enter');
+  assert.equal(await page.locator('#amt').inputValue(), '200');
+  assert.equal(await page.locator('#amountCalcPanel').isHidden(), true);
+  assert.equal(await page.locator('#amountCalcToggle').getAttribute('aria-expanded'), 'false');
 });
 
 test('the % panel shows the entered percentage of the base profit', async t => {

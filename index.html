@@ -1167,6 +1167,8 @@ function openAmountCalculator() {
 }
 
 function closeAmountCalculator() {
+  // Blur first so the on-screen keyboard retracts together with the panel on touch devices.
+  amountCalcOperand.blur();
   amountCalcPanel.hidden = true;
   amountCalcToggle.setAttribute("aria-expanded", "false");
   amountCalcOperand.value = "";
@@ -1180,10 +1182,10 @@ function applyAmountCalculation() {
     return;
   }
   amtEl.value = amountCalcInputValue(calculation.value);
-  amountCalcOperand.value = "";
   render();
+  closeAmountCalculator();
+  amountCalcToggle.focus();
   toast("Amount updated");
-  amountCalcOperand.focus();
 }
 
 amountCalcToggle.addEventListener("click", () => {
