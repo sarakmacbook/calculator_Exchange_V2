@@ -278,7 +278,7 @@
     white-space:nowrap;
     border:0;
   }
-  .result-sub { margin-top:4px; font-size:12px; color:#5a5a5a; font-variant-numeric:tabular-nums; }
+  .result-sub { margin-top:4px; font-size:12px; color:#5a5a5a; font-variant-numeric:tabular-nums; overflow-wrap:anywhere; }
 
   @media (min-width: 768px) {
     .result { font-size:56px; }
@@ -652,7 +652,7 @@
     font-size:20px; font-weight:700; color:#fff; font-variant-numeric:tabular-nums;
   }
   .find-rate-panel .fr-result .fr-res-formula {
-    font-size:10px; color:#3d3d3d; margin-top:1px;
+    font-size:10px; color:#3d3d3d; margin-top:1px; overflow-wrap:anywhere;
   }
 
   .find-rate-panel .fr-btn {
@@ -1060,7 +1060,7 @@ const MODE_CONFIG = {
     amtCurLabel: "amtcur",
     scaleTitle: "Scale at current rate",
     calc: (rate, amt) => amt / rate,
-    subText: (amt, rate, currencyLabel) => fmt(amt, 0) + " " + currencyLabel + " ÷ " + fmt(rate, 2) + " " + currencyLabel + "/USDT",
+    subText: (amt, rate, currencyLabel) => fmtFormula(amt) + " " + currencyLabel + " ÷ " + fmtFormula(rate) + " " + currencyLabel + "/USDT",
     scaleCalc: (rate, val) => val / rate,
     scaleUnit: "USDT"
   },
@@ -1071,7 +1071,7 @@ const MODE_CONFIG = {
     amtCurLabel: "USDT",
     scaleTitle: "Scale (USDT → " + "CURRENCY" + ")",
     calc: (rate, amt) => amt * rate,
-    subText: (amt, rate, currencyLabel) => fmt(amt, 2) + " USDT × " + fmt(rate, 2) + " " + currencyLabel + "/USDT",
+    subText: (amt, rate, currencyLabel) => fmtFormula(amt) + " USDT × " + fmtFormula(rate) + " " + currencyLabel + "/USDT",
     scaleCalc: (rate, val) => val * rate,
     scaleUnit: "CURRENCY"
   }
@@ -1271,6 +1271,12 @@ amtEl.value = "";
 
 const num = (s) => { const v = parseFloat(String(s).replace(/,/g, "")); return isFinite(v) && v > 0 ? v : 0; };
 const fmt = (n, d) => n.toLocaleString("en-US", {minimumFractionDigits: d, maximumFractionDigits: d});
+// Formula numbers are capped at 5 digits so a formula line stays readable and
+// keeps the precision that was actually typed: a unit price of 1.028 is shown
+// as 1.028 (never rounded to 1.03), while a longer entry such as 1.0523456 is
+// trimmed to 1.0523. Grouping and trailing zeros follow the number itself.
+const FORMULA_DIGITS = 5;
+const fmtFormula = (n) => Number(n.toPrecision(FORMULA_DIGITS)).toLocaleString("en-US", { maximumFractionDigits: 20 });
 const outUnitEl = document.getElementById("outunit");
 // One source of truth for the mark: the same geometry paints the on-screen
 // result row (below) and the exported PNG, so a screenshot never disagrees
@@ -1767,7 +1773,7 @@ function updateFindRate() {
     const rate = paid / received;
     const decimals = currentCurrency === "usd" ? 4 : 2;
     frResValue.textContent = fmt(rate, decimals) + " " + cfg.amtLabel + "/USDT";
-    frResFormula.textContent = fmt(paid, currentCurrency === "usd" ? 2 : 0) + " " + cfg.amtLabel + " ÷ " + fmt(received, 2) + " USDT";
+    frResFormula.textContent = fmtFormula(paid) + " " + cfg.amtLabel + " ÷ " + fmtFormula(received) + " USDT";
     frResult.style.display = "block";
     frCalcBtn.textContent = "Use this rate";
     frCalcBtn.disabled = false;

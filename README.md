@@ -58,6 +58,8 @@ Work backwards from a completed trade when you only know what you paid and how m
 3. The panel shows `paid ÷ received` as the unit price, with the formula underneath.
 4. Tap the result (or **Use this rate**) to drop it into the main Unit price field and close the panel.
 
+Formula numbers print the precision you typed, capped at **five digits** — a unit price of `1.028` reads as `1.028`, never `1.03`, while a longer entry such as `1.0523456` is trimmed to `1.0523`. Trailing zeros are dropped, and amounts keep their thousands separators.
+
 Labels follow the active currency (USD or IQD). Nothing is stored — close the panel or refresh and the fields clear.
 
 ### Profit Calculator
@@ -86,7 +88,7 @@ Tap the **%** button on that row to open a small panel that takes a percentage o
 2. **Hold the main result for about 0.65 seconds** (with a keyboard: focus the result and press Enter/Space).
 3. Preview the image and choose **Save PNG**, or **Share** on browsers that support image sharing. On mobile, you can also hold the preview image to save it.
 
-The image contains only the conversion result, formula, unit price, amount, and a footer with the **site URL** so anyone it gets forwarded to can find the calculator. The footer prints the address the page is actually served from — e.g. `https://calc.example.com` on your own domain, or `https://sarakmacbook.github.io/calculator_Exchange_V2` on GitHub Pages — and falls back to that public URL when the page is opened from `file://`, `localhost`, a raw IP, or a throwaway preview host. All profit and percentage panels are excluded, even when open; the calculator's values and panels are left unchanged. Short taps and scrolling do not capture an image. PNGs are generated locally using native canvas, with no upload, external library, or network connection required.
+The image contains only the conversion result, formula (same five-digit numbers as on screen), unit price, amount, and a footer with the **site URL** so anyone it gets forwarded to can find the calculator. The footer prints the address the page is actually served from — e.g. `https://calc.example.com` on your own domain, or `https://sarakmacbook.github.io/calculator_Exchange_V2` on GitHub Pages — and falls back to that public URL when the page is opened from `file://`, `localhost`, a raw IP, or a throwaway preview host. All profit and percentage panels are excluded, even when open; the calculator's values and panels are left unchanged. Short taps and scrolling do not capture an image. PNGs are generated locally using native canvas, with no upload, external library, or network connection required.
 
 **USDT wears its logo:** whenever the result unit is USDT, the PNG prints the Tether coin next to the label — the same vector path the on-screen result row uses, drawn straight into the canvas (no icon font, no image file, so the export still works offline and the mark stays sharp at any zoom). USD and IQD results stay plain text, because the badge belongs to USDT only.
 

@@ -202,6 +202,55 @@ for (const conversion of conversions) {
   });
 }
 
+// ===== FORMULA NUMBERS (UP TO 5 DIGITS) =====
+// Formula lines print numbers at the precision that was typed, capped at five
+// digits: a unit price of 1.028 stays 1.028 (never rounded to 1.03), a longer
+// entry such as 1.0523456 is trimmed to 1.0523, and trailing zeros are dropped.
+const formulaCases = [
+  { name: 'send mode keeps the typed unit price', rate: '1.028', amount: '500', formula: '500 USD \u00f7 1.028 USD/USDT' },
+  { name: 'receive mode keeps the typed unit price', rate: '1.028', amount: '100', mode: 'receive', formula: '100 USDT \u00d7 1.028 USD/USDT' },
+  { name: 'a longer unit price is trimmed to five digits', rate: '1.0523456', amount: '1000', formula: '1,000 USD \u00f7 1.0523 USD/USDT' },
+  { name: 'trailing zeros are not printed', rate: '1.0500', amount: '500', formula: '500 USD \u00f7 1.05 USD/USDT' },
+  { name: 'IQD keeps grouping with five-digit numbers', rate: '1500', amount: '1500000', currency: 'iqd', formula: '1,500,000 IQD \u00f7 1,500 IQD/USDT' }
+];
+
+for (const formulaCase of formulaCases) {
+  test(`the result formula ${formulaCase.name}`, async t => {
+    const page = await calculator(t);
+    if (formulaCase.currency) await page.selectOption('#currency', formulaCase.currency);
+    if (formulaCase.mode) await page.click(`[data-mode="${formulaCase.mode}"]`);
+    await setValues(page, formulaCase.rate, formulaCase.amount);
+    assert.equal(await page.locator('#outsub').textContent(), formulaCase.formula);
+  });
+}
+
+test('the exported PNG draws the same capped formula as the screen', async t => {
+  const page = await calculator(t);
+  await setValues(page, '1.028', '500');
+  assert.equal(await page.locator('#outsub').textContent(), '500 USD \u00f7 1.028 USD/USDT');
+  assert.equal(await page.locator('#out').textContent(), '486.38');
+  await openScreenshot(page);
+  const drawn = await page.evaluate(() => window.drawnText);
+  assert.ok(drawn.includes('500 USD \u00f7 1.028 USD/USDT'), `the formula is drawn as typed: ${JSON.stringify(drawn)}`);
+});
+
+test('the Find Unit Price formula is capped at five digits too', async t => {
+  const page = await calculator(t);
+  await page.click('#findRateToggle');
+  await page.fill('#frPaid', '1000');
+  await page.fill('#frReceived', '980');
+  assert.equal(await page.locator('#frResFormula').textContent(), '1,000 USD \u00f7 980 USDT');
+  assert.equal(await page.locator('#frResValue').textContent(), '1.0204 USD/USDT');
+  await page.fill('#frPaid', '1000.123456');
+  assert.equal(await page.locator('#frResFormula').textContent(), '1,000.1 USD \u00f7 980 USDT');
+  await page.fill('#frPaid', '1000');
+  assert.equal(await page.locator('#frResFormula').textContent(), '1,000 USD \u00f7 980 USDT', 'no trailing zeros creep back in');
+  await page.selectOption('#currency', 'iqd');
+  await page.fill('#frPaid', '1500000');
+  await page.fill('#frReceived', '990');
+  assert.equal(await page.locator('#frResFormula').textContent(), '1,500,000 IQD \u00f7 990 USDT');
+});
+
 // ===== USDT (Tether) LOGO =====
 // Reads the exported PNG back and reports every Tether-green pixel it finds.
 async function tetherBadge(page) {
