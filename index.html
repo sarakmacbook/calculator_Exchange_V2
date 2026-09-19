@@ -354,14 +354,33 @@
     color:#909090; font-size:11px;
   }
   .amount-calc-preview strong { min-width:0; color:#fff; font-size:15px; font-variant-numeric:tabular-nums; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .amount-calc-preview.can-copy { cursor:pointer; }
+  .amount-calc-preview.can-copy:hover strong { color:#c5f000; }
   .amount-calc-preview.is-error strong { color:#ff7777; font-size:12px; white-space:normal; text-align:right; }
-  .amount-calc-apply {
-    width:100%; min-height:38px; margin-top:9px; padding:8px 10px; border:0; border-radius:9px;
-    background:#c5f000; color:#000; font-family:inherit; font-size:12px; font-weight:800; cursor:pointer;
+  .amount-calc-actions { display:flex; gap:8px; margin-top:9px; }
+  .amount-calc-copy, .amount-calc-apply {
+    flex:1; min-height:38px; padding:8px 10px; border-radius:9px;
+    font-family:inherit; font-size:12px; font-weight:800; cursor:pointer;
+    display:inline-flex; align-items:center; justify-content:center;
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+    transition:all .15s; touch-action:manipulation;
   }
-  .amount-calc-apply:active { opacity:.8; }
+  .amount-calc-copy {
+    border:1px solid #303030; background:#181818; color:#fff;
+  }
+  .amount-calc-copy:hover:not(:disabled), .amount-calc-copy:focus-visible {
+    border-color:#c5f000; color:#c5f000;
+  }
+  .amount-calc-copy:active:not(:disabled) { opacity:.8; }
+  .amount-calc-copy:disabled {
+    background:#181818; border-color:#242424; color:#555; cursor:not-allowed;
+  }
+  .amount-calc-apply {
+    border:0; background:#c5f000; color:#000;
+  }
+  .amount-calc-apply:active:not(:disabled) { opacity:.8; }
   .amount-calc-apply:disabled { background:#2a2a2a; color:#666; cursor:not-allowed; }
-  .amount-calc-toggle:focus-visible, .amount-calc-close:focus-visible, .amount-calc-op:focus-visible, .amount-calc-apply:focus-visible { outline:2px solid #fff; outline-offset:2px; }
+  .amount-calc-toggle:focus-visible, .amount-calc-close:focus-visible, .amount-calc-op:focus-visible, .amount-calc-copy:focus-visible, .amount-calc-apply:focus-visible { outline:2px solid #fff; outline-offset:2px; }
 
   @media (min-width: 768px) {
     .fields { margin-top:18px; gap:10px; }
@@ -972,7 +991,10 @@
           <div class="amount-calc-preview" id="amountCalcPreview" role="status" aria-live="polite">
             <span>New amount</span><strong id="amountCalcResult">Enter a value</strong>
           </div>
-          <button class="amount-calc-apply" id="amountCalcApply" type="button" disabled>Use total</button>
+          <div class="amount-calc-actions">
+            <button class="amount-calc-copy" id="amountCalcCopy" type="button" disabled title="Copy total amount" aria-label="Copy total amount">Copy total</button>
+            <button class="amount-calc-apply" id="amountCalcApply" type="button" disabled>Use total</button>
+          </div>
         </section>
       </div>
     </div>
@@ -1093,6 +1115,7 @@ const amountCalcSymbol = document.getElementById("amountCalcSymbol");
 const amountCalcOperand = document.getElementById("amountCalcOperand");
 const amountCalcPreview = document.getElementById("amountCalcPreview");
 const amountCalcResult = document.getElementById("amountCalcResult");
+const amountCalcCopy = document.getElementById("amountCalcCopy");
 const amountCalcApply = document.getElementById("amountCalcApply");
 const amountCalcOperators = Array.from(document.querySelectorAll("[data-amount-operation]"));
 let amountCalcOperation = "+";
@@ -1147,6 +1170,14 @@ function getAmountCalcComputation() {
   return { ok: true, value };
 }
 
+function copyAmountCalcTotal() {
+  const calculation = getAmountCalcComputation();
+  if (!calculation.ok) return;
+  const text = amountCalcInputValue(calculation.value);
+  if (!text) return;
+  copyTextToClipboard(text, () => toast("Copied"));
+}
+
 function updateAmountCalculator() {
   const base = getAmountCalcBase();
   const hasBase = base !== null;
@@ -1167,14 +1198,24 @@ function updateAmountCalculator() {
   const calculation = getAmountCalcComputation();
   if (calculation.ok) {
     amountCalcPreview.classList.remove("is-error");
+    amountCalcPreview.classList.add("can-copy");
+    amountCalcPreview.title = "Tap to copy total amount";
     amountCalcResult.textContent = formatAmountCalcValue(calculation.value) + " " + amountCalcUnit();
     amountCalcApply.disabled = false;
     amountCalcApply.textContent = "Use " + formatAmountCalcValue(calculation.value);
+    amountCalcCopy.disabled = false;
+    amountCalcCopy.textContent = "Copy " + formatAmountCalcValue(calculation.value);
+    amountCalcCopy.title = "Copy total amount (" + formatAmountCalcValue(calculation.value) + ")";
   } else {
     amountCalcPreview.classList.toggle("is-error", hasBase && amountCalcOperand.value.trim() !== "");
+    amountCalcPreview.classList.remove("can-copy");
+    amountCalcPreview.removeAttribute("title");
     amountCalcResult.textContent = calculation.message;
     amountCalcApply.disabled = true;
     amountCalcApply.textContent = "Use total";
+    amountCalcCopy.disabled = true;
+    amountCalcCopy.textContent = "Copy total";
+    amountCalcCopy.title = "Copy total amount";
   }
 }
 
@@ -1233,7 +1274,18 @@ amountCalcOperand.addEventListener("keydown", event => {
     amountCalcToggle.focus();
   }
 });
+amountCalcCopy.addEventListener("click", copyAmountCalcTotal);
 amountCalcApply.addEventListener("click", applyAmountCalculation);
+amountCalcPreview.addEventListener("click", () => {
+  const calculation = getAmountCalcComputation();
+  if (calculation.ok) copyAmountCalcTotal();
+});
+amountCalcPanel.addEventListener("keydown", event => {
+  if (event.key === "Escape") {
+    closeAmountCalculator();
+    amountCalcToggle.focus();
+  }
+});
 
 // Find Rate elements
 const findRateToggle = document.getElementById("findRateToggle");
@@ -1683,16 +1735,19 @@ resultTap.addEventListener("pointerdown", event => {
   resultTap.classList.add("is-holding");
 });
 
-// Quick tap copies the numeric result to the clipboard; a longer hold screenshots.
-function copyResult() {
-  const text = document.getElementById("out").textContent.replace(/,/g, "").trim();
-  if (!text) return;
-  const done = () => toast("Copied");
+function copyTextToClipboard(text, done) {
   if (navigator.clipboard && navigator.clipboard.writeText) {
     navigator.clipboard.writeText(text).then(done).catch(() => fallbackCopy(text, done));
   } else {
     fallbackCopy(text, done);
   }
+}
+
+// Quick tap copies the numeric result to the clipboard; a longer hold screenshots.
+function copyResult() {
+  const text = document.getElementById("out").textContent.replace(/,/g, "").trim();
+  if (!text) return;
+  copyTextToClipboard(text, () => toast("Copied"));
 }
 
 function fallbackCopy(text, done) {

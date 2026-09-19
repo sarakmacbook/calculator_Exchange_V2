@@ -717,8 +717,60 @@ test('the amount calculator refuses a zero divisor and non-positive total', asyn
   await page.fill('#amountCalcOperand', '0');
   assert.equal(await page.locator('#amountCalcResult').textContent(), 'Cannot divide by zero');
   assert.equal(await page.locator('#amountCalcApply').isDisabled(), true);
+  assert.equal(await page.locator('#amountCalcCopy').isDisabled(), true);
   await page.click('[data-amount-operation="-"]');
   await page.fill('#amountCalcOperand', '10');
   assert.equal(await page.locator('#amountCalcResult').textContent(), 'Total must be greater than zero');
   assert.equal(await page.locator('#amountCalcApply').isDisabled(), true);
+  assert.equal(await page.locator('#amountCalcCopy').isDisabled(), true);
+});
+
+test('the amount calculator copies the total amount to the clipboard', async t => {
+  const page = await calculator(t);
+  await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
+  await recordClipboard(page);
+
+  await page.fill('#amt', '10');
+  await page.click('#amountCalcToggle');
+  assert.equal(await page.locator('#amountCalcPanel').isVisible(), true);
+  assert.equal(await page.locator('#amountCalcCopy').isDisabled(), true);
+
+  await page.click('[data-amount-operation="+"]');
+  await page.fill('#amountCalcOperand', '10');
+  assert.equal(await page.locator('#amountCalcResult').textContent(), '20 USD');
+  assert.equal(await page.locator('#amountCalcCopy').isEnabled(), true);
+  assert.equal(await page.locator('#amountCalcCopy').textContent(), 'Copy 20');
+
+  // Clicking copy button copies the total and shows toast without closing the panel
+  await page.click('#amountCalcCopy');
+  await page.waitForFunction(() => document.getElementById('toast').classList.contains('show'));
+  assert.equal(await page.locator('#toast').textContent(), 'Copied');
+  assert.deepEqual(await page.evaluate(() => window.__copied), ['20']);
+  assert.equal(await page.locator('#amountCalcPanel').isVisible(), true);
+  assert.equal(await page.locator('#amt').inputValue(), '10', 'original amount field remains untouched on copy');
+
+  // Clicking the preview also copies the total amount
+  await page.click('#amountCalcResult');
+  await page.waitForFunction(() => document.getElementById('toast').classList.contains('show'));
+  assert.equal(await page.locator('#toast').textContent(), 'Copied');
+  assert.deepEqual(await page.evaluate(() => window.__copied), ['20', '20']);
+});
+
+test('quick calculate copies large numbers without grouping commas for easy pasting', async t => {
+  const page = await calculator(t);
+  await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
+  await recordClipboard(page);
+
+  await page.click('[data-currency="iqd"]');
+  await page.fill('#amt', '1500000');
+  await page.click('#amountCalcToggle');
+  await page.click('[data-amount-operation="+"]');
+  await page.fill('#amountCalcOperand', '500000');
+  assert.equal(await page.locator('#amountCalcResult').textContent(), '2,000,000 IQD');
+  assert.equal(await page.locator('#amountCalcCopy').textContent(), 'Copy 2,000,000');
+
+  await page.click('#amountCalcCopy');
+  await page.waitForFunction(() => document.getElementById('toast').classList.contains('show'));
+  assert.equal(await page.locator('#toast').textContent(), 'Copied');
+  assert.deepEqual(await page.evaluate(() => window.__copied), ['2000000']);
 });
