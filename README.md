@@ -343,6 +343,22 @@ Recent updates reflected in this README:
 
 ---
 
+## 🤖 Telegram price alert bot on Vercel: keep the cron running
+
+The companion Telegram bot ([OKX_Telegram_P2P_Price_Bot](https://github.com/sarakmacbook/OKX_Telegram_P2P_Price_Bot)) runs on Vercel and only checks prices when its `/api/tick` endpoint is called. On Vercel's **Hobby (free) plan**, the cron in `vercel.json` (`"0 0 * * *"`) runs **once a day**, so a price change can take up to 24 hours to show up in the Telegram alert.
+
+**Fix:** call `/api/tick` from a free third-party scheduler such as [cron-job.org](https://cron-job.org) every 5 minutes:
+
+1. Create a new cron job with the URL `https://<your-app>.vercel.app/api/tick`, schedule **every 5 minutes**, and method **GET**.
+2. If you set `CRON_SECRET` in Vercel, add the header `Authorization: Bearer <CRON_SECRET>`. Alternatively, append `?secret=<CRON_SECRET>` to the URL.
+3. Open `https://<your-app>.vercel.app/api/webhook` in a browser and check the **Last cron run** row to confirm it is updating.
+
+Each run posts prices only when they have changed, so a 5-minute schedule won't spam the group. On the **Vercel Pro** plan you can instead set the cron to `"* * * * *"` in `vercel.json` and skip the external scheduler.
+
+> Third-party schedulers are outside Vercel and GitHub, so review their terms and keep `CRON_SECRET` set so that strangers can't trigger posts.
+
+---
+
 ## 🤝 Contributing
 
 Pull requests welcome! This is a single-file app — keep it simple.
