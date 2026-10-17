@@ -1117,6 +1117,9 @@
 
 <script>
 const DEFAULT_RATES = { usd: 1, iqd: 14 };
+// Exchange rate used when switching between IQD and USD: how many IQD equal 1 USD.
+// Current official rate for end users (CBI, effective 7 Oct 2026): 1,520 IQD per USD.
+const IQD_PER_USD = 1520;
 const CURRENCY_CONFIG = {
   usd: {
     rateLabel: "USD per 1 USDT", amtLabel: "USD", placeholder: "500",
@@ -1547,10 +1550,27 @@ function render() {
   updateScreenshotAvailability();
 }
 
+// Convert an amount between the two currencies using IQD_PER_USD.
+function convertCurrencyAmount(value, from, to) {
+  if (from === to) return value;
+  return from === "iqd" ? value / IQD_PER_USD : value * IQD_PER_USD;
+}
+
 function switchCurrency(curr) {
+  const previousCurrency = currentCurrency;
+  const previousAmount = num(amtEl.value);
   currentCurrency = curr;
   rateEl.value = DEFAULT_RATES[curr];
-  amtEl.value = "";
+  // In Send mode the amount is in the local currency, so carry it over at the
+  // current rate (e.g. 1,520,000 IQD -> 1,000.00 USD). Receive mode amounts are
+  // USDT and are not affected by the currency choice.
+  let nextAmount = "";
+  if (currentMode === "send" && previousAmount > 0 && previousCurrency !== curr) {
+    const decimals = curr === "usd" ? 2 : 0;
+    const converted = Number(convertCurrencyAmount(previousAmount, previousCurrency, curr).toFixed(decimals));
+    if (converted > 0) nextAmount = String(converted);
+  }
+  amtEl.value = nextAmount;
   closeAmountCalculator();
   updateUI();
   render();

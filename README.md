@@ -46,7 +46,9 @@ A sleek, dark-themed **P2P exchange calculator** for converting **US Dollar (USD
 
 The header row is a single line: the **Currency** dropdown on the left (USD or IQD) and the **Send → Receive** switcher on the right.
 
-* Picking a currency resets the unit price to that currency's default (USD **1**, IQD **14**), clears the amount, and reloads the quick chips, labels, and profit row.
+* Picking a currency resets the unit price to that currency's default (USD **1**, IQD **14**), converts the Send amount at the built-in rate **`IQD_PER_USD`** (currently **1,520 IQD = 1 USD**, the official end-user rate from 7 Oct 2026 — edit the constant in `index.html` when the rate changes), and reloads the quick chips, labels, and profit row.
+  * Example: **1,520,000 IQD** → switch to USD → **1,000.00 USD**; **1,000 USD** → switch to IQD → **1,520,000 IQD**.
+  * In Receive mode the amount is USDT, so it is cleared as before.
 * Changing the direction keeps the chosen currency — you can flip between Send and Receive without losing it.
 * USD and IQD share the same layout: only labels, chips, and rounding change.
 
