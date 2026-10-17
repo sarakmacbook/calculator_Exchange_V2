@@ -753,6 +753,8 @@
   .find-rate-panel .fr-btn:active { opacity:0.8; }
   .find-rate-panel .fr-btn:disabled { background:#2a2a2a; color:#5a5a5a; cursor:not-allowed; }
 
+  .find-rate-panel .cr-current { margin:8px 0 8px; font-size:11px; color:#909090; font-variant-numeric:tabular-nums; }
+
   .find-rate-panel .fr-close {
     text-align:center; margin-top:6px;
     font-size:11px; color:#3d3d3d; cursor:pointer;
@@ -1008,6 +1010,29 @@
       <button class="pr-btn" id="prCalcBtn" disabled>Enter all values</button>
       <div class="pr-close" id="prClose">Close</div>
     </div>
+        <button class="tool-dropdown-toggle custom-rate-toggle" id="customRateToggle" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="customRatePanel">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7h11l-3-3 1.4-1.4L22.8 7.4 16.4 13.8 15 12.4l3-3H7V7zm10 10H6l3 3-1.4 1.4L1.2 16.6l6.4-6.4 1.4 1.4-3 3h11v2z"/></svg>
+          <span class="tool-dropdown-label">Exchange Rate</span>
+          <svg class="dropdown-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
+
+    <!-- Exchange Rate Panel: custom IQD per USD, saved as the current rate -->
+    <div class="find-rate-panel custom-rate-panel" id="customRatePanel" role="region" aria-labelledby="customRateToggle">
+      <div class="fr-title">
+        <svg viewBox="0 0 24 24"><path d="M7 7h11l-3-3 1.4-1.4L22.8 7.4 16.4 13.8 15 12.4l3-3H7V7zm10 10H6l3 3-1.4 1.4L1.2 16.6l6.4-6.4 1.4 1.4-3 3h11v2z"/></svg>
+        Custom IQD per USD
+      </div>
+      <div class="fr-row">
+        <div class="fr-field" style="flex:1;">
+          <div class="fr-label">IQD per 1 USD</div>
+          <input id="crInput" type="text" inputmode="decimal" placeholder="1520" autocomplete="off">
+          <div class="fr-cur">IQD</div>
+        </div>
+      </div>
+      <div class="cr-current" id="crCurrent">Current: 1,520 IQD per 1 USD</div>
+      <button class="fr-btn" id="crSaveBtn" disabled>Enter a rate</button>
+      <div class="fr-close" id="crClose">Close</div>
+    </div>
       </div><!-- /tools-menu -->
     </div><!-- /tools-dropdown -->
 
@@ -1118,8 +1143,9 @@
 <script>
 const DEFAULT_RATES = { usd: 1, iqd: 14 };
 // Exchange rate used when switching between IQD and USD: how many IQD equal 1 USD.
+// Can be changed in Tools > Exchange Rate (kept in memory only, resets on refresh).
 // Current official rate for end users (CBI, effective 7 Oct 2026): 1,520 IQD per USD.
-const IQD_PER_USD = 1520;
+let IQD_PER_USD = 1520;
 const CURRENCY_CONFIG = {
   usd: {
     rateLabel: "USD per 1 USDT", amtLabel: "USD", placeholder: "500",
@@ -1369,6 +1395,14 @@ const frCalcBtn = document.getElementById("frCalcBtn");
 const frClose = document.getElementById("frClose");
 const frPaidLabel = document.getElementById("frPaidLabel");
 const frPaidCur = document.getElementById("frPaidCur");
+
+// Exchange Rate (custom IQD per USD) elements
+const customRateToggle = document.getElementById("customRateToggle");
+const customRatePanel = document.getElementById("customRatePanel");
+const crInput = document.getElementById("crInput");
+const crCurrent = document.getElementById("crCurrent");
+const crSaveBtn = document.getElementById("crSaveBtn");
+const crClose = document.getElementById("crClose");
 
 // Profit Calculator elements
 const profitToggle = document.getElementById("profitToggle");
@@ -2004,6 +2038,7 @@ function closeToolDropdown(toggle, panel) {
 function closeAllToolDropdowns() {
   closeToolDropdown(findRateToggle, findRatePanel);
   closeToolDropdown(profitToggle, profitPanel);
+  closeToolDropdown(customRateToggle, customRatePanel);
 }
 function setToolsDropdown(open) {
   toolsMenu.classList.toggle("open", open);
@@ -2060,15 +2095,45 @@ document.addEventListener("click", (event) => {
 document.addEventListener("keydown", (event) => {
   if (event.key !== "Escape") return;
   // Close one layer at a time: an open tool first, then the Tools menu.
-  const openToggle = findRatePanel.classList.contains("open") ? findRateToggle
-    : profitPanel.classList.contains("open") ? profitToggle : null;
+  const openPairs = [[findRateToggle, findRatePanel], [profitToggle, profitPanel], [customRateToggle, customRatePanel]];
+  const openPair = openPairs.find(([, panel]) => panel.classList.contains("open"));
+  const openToggle = openPair ? openPair[0] : null;
   if (openToggle) {
-    closeToolDropdown(openToggle, openToggle === findRateToggle ? findRatePanel : profitPanel);
+    closeToolDropdown(openToggle, openPair[1]);
     openToggle.focus();
   } else if (toolsMenu.classList.contains("open")) {
     setToolsDropdown(false);
     toolsToggle.focus();
   }
+});
+
+// ===== EXCHANGE RATE TOOL (custom IQD per USD) =====
+function updateCustomRateUI() {
+  crCurrent.textContent = "Current: " + IQD_PER_USD.toLocaleString("en-US", { maximumFractionDigits: 2 }) + " IQD per 1 USD";
+  const value = num(crInput.value);
+  crSaveBtn.disabled = !(value > 0);
+  crSaveBtn.textContent = value > 0 ? "Save as current rate" : "Enter a rate";
+}
+
+function saveCustomRate() {
+  const value = num(crInput.value);
+  if (!(value > 0)) return;
+  IQD_PER_USD = value;
+  crInput.value = "";
+  updateCustomRateUI();
+  toast("Saved: 1 USD = " + value.toLocaleString("en-US", { maximumFractionDigits: 2 }) + " IQD");
+}
+
+customRateToggle.addEventListener("click", () => {
+  toggleToolDropdown(customRateToggle, customRatePanel, crInput);
+  updateCustomRateUI();
+});
+crInput.addEventListener("input", updateCustomRateUI);
+crInput.addEventListener("keydown", (event) => { if (event.key === "Enter") saveCustomRate(); });
+crSaveBtn.addEventListener("click", saveCustomRate);
+crClose.addEventListener("click", () => {
+  closeToolDropdown(customRateToggle, customRatePanel);
+  customRateToggle.focus();
 });
 
 prBuy.addEventListener("input", calcProfit);
