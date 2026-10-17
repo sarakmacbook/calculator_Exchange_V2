@@ -592,27 +592,98 @@
   .screenshot-dialog [hidden] { display:none; }
   .result-wrap:focus-visible, .screenshot-dialog :focus-visible { outline:2px solid #c5f000; outline-offset:3px; }
 
-  /* === FIND RATE PANEL === */
-  .find-rate-toggle {
+  /* === TOOLS DROPDOWN (category: Find Unit Price + Profit Calculator) === */
+  .tools-dropdown { margin-top:8px; }
+  .tools-toggle {
     display:flex;
     align-items:center;
-    justify-content:center;
     gap:6px;
-    margin-top:8px;
-    padding:6px;
-    background:transparent;
-    border:1px dashed #2a2a2a;
+    width:100%;
+    min-width:0;
+    min-height:40px;
+    padding:9px 11px;
+    background:#181818;
+    border:1px solid #2a2a2a;
     border-radius:12px;
-    color:#5a5a5a;
+    color:#909090;
     font-size:12px;
     font-weight:600;
     font-family:inherit;
     cursor:pointer;
-    transition: all 0.2s;
-    width:100%;
+    transition: border-color .2s, color .2s, background .2s;
+    -webkit-appearance:none;
+    appearance:none;
+    text-align:left;
   }
-  .find-rate-toggle:hover { border-color:#c5f000; color:#c5f000; }
-  .find-rate-toggle svg { width:14px; height:14px; fill:currentColor; }
+  .tools-toggle:hover { border-color:#c5f000; color:#c5f000; }
+  .tools-toggle:focus-visible { outline:2px solid #c5f000; outline-offset:2px; }
+  .tools-toggle.open { border-color:#c5f000; color:#c5f000; background:#141a00; }
+  .tools-toggle > svg:first-child { width:14px; height:14px; fill:currentColor; flex-shrink:0; }
+  .tools-toggle .tools-toggle-label {
+    flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .tools-toggle .dropdown-chevron {
+    width:12px; height:12px; flex-shrink:0; margin-left:auto;
+    fill:none; stroke:currentColor; stroke-width:2.6; stroke-linecap:round; stroke-linejoin:round;
+    transition: transform .2s ease;
+  }
+  .tools-toggle.open .dropdown-chevron { transform:rotate(180deg); }
+
+  /* The Tools menu: one category holding both tool entries. */
+  .tools-menu {
+    display:none;
+    margin-top:8px;
+    background:#0f0f0f;
+    border:1px solid #1a1a1a;
+    border-radius:16px;
+    padding:8px;
+    animation: slideDown 0.25s ease;
+  }
+  .tools-menu.open { display:block; }
+  .tools-menu .find-rate-panel,
+  .tools-menu .profit-panel { margin-top:6px; margin-bottom:8px; }
+
+  /* Each tool inside Tools is its own expandable entry. */
+  .tool-dropdown-toggle {
+    display:flex;
+    align-items:center;
+    gap:6px;
+    width:100%;
+    min-width:0;
+    min-height:40px;
+    padding:9px 11px;
+    background:#181818;
+    border:1px solid #2a2a2a;
+    border-radius:12px;
+    color:#909090;
+    font-size:12px;
+    font-weight:600;
+    font-family:inherit;
+    cursor:pointer;
+    transition: border-color .2s, color .2s, background .2s;
+    -webkit-appearance:none;
+    appearance:none;
+    text-align:left;
+  }
+  .tool-dropdown-toggle + .tool-dropdown-toggle { margin-top:6px; }
+  .tool-dropdown-toggle:hover { border-color:#c5f000; color:#c5f000; }
+  .tool-dropdown-toggle:focus-visible { outline:2px solid #c5f000; outline-offset:2px; }
+  .tool-dropdown-toggle.open { border-color:#c5f000; color:#c5f000; background:#141a00; }
+  .tool-dropdown-toggle > svg:first-child { width:14px; height:14px; fill:currentColor; flex-shrink:0; }
+  .tool-dropdown-toggle .tool-dropdown-label {
+    flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .tool-dropdown-toggle .dropdown-chevron {
+    width:12px; height:12px; flex-shrink:0; margin-left:auto;
+    fill:none; stroke:currentColor; stroke-width:2.6; stroke-linecap:round; stroke-linejoin:round;
+    transition: transform .2s ease;
+  }
+  .tool-dropdown-toggle.open .dropdown-chevron { transform:rotate(180deg); }
+  @media (max-width: 375px) {
+    .tools-toggle, .tool-dropdown-toggle { font-size:11px; padding:8px 9px; gap:5px; }
+  }
+
+  /* === FIND RATE PANEL === */
 
   .find-rate-panel {
     margin-top:8px;
@@ -689,26 +760,7 @@
   .find-rate-panel .fr-close:active { color:#5a5a5a; }
 
   /* === PROFIT CALCULATOR PANEL === */
-  .profit-toggle {
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    gap:6px;
-    margin-top:8px;
-    padding:6px;
-    background:transparent;
-    border:1px dashed #2a2a2a;
-    border-radius:12px;
-    color:#5a5a5a;
-    font-size:12px;
-    font-weight:600;
-    font-family:inherit;
-    cursor:pointer;
-    transition: all 0.2s;
-    width:100%;
-  }
-  .profit-toggle:hover { border-color:#c5f000; color:#c5f000; }
-  .profit-toggle svg { width:14px; height:14px; fill:currentColor; }
+  /* .profit-toggle trigger styling lives in the shared .tool-dropdown-toggle rules above. */
 
   .profit-panel {
     margin-top:8px;
@@ -861,14 +913,23 @@
       </div>
     </div>
 
-    <!-- Find Rate Toggle -->
-    <button class="find-rate-toggle" id="findRateToggle">
-      <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
-      Find Unit Price
-    </button>
+    <!-- Tools dropdown: one category holding Find Unit Price + Profit Calculator -->
+    <div class="tools-dropdown" id="toolsDropdown">
+      <button class="tools-toggle" id="toolsToggle" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="toolsMenu">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9C10.3 1.2 7.5.5 4.9 1.4L9 5.5 7 7.5 2.9 3.4C2 6.9 3.1 10.6 5.9 13.4c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.39.39 1.02.39 1.41 0l2.34-2.34c.39-.39.39-1.02 0-1.41z"/></svg>
+        <span class="tools-toggle-label">Tools</span>
+        <svg class="dropdown-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+      </button>
+
+      <div class="tools-menu" id="toolsMenu" role="group" aria-label="Tools">
+        <button class="tool-dropdown-toggle find-rate-toggle" id="findRateToggle" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="findRatePanel">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+          <span class="tool-dropdown-label">Find Unit Price</span>
+          <svg class="dropdown-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
 
     <!-- Find Rate Panel -->
-    <div class="find-rate-panel" id="findRatePanel">
+    <div class="find-rate-panel" id="findRatePanel" role="region" aria-labelledby="findRateToggle">
       <div class="fr-title">
         <svg viewBox="0 0 24 24"><path d="M9 11H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2zm2-7h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z"/></svg>
         Calculate Rate from Trade
@@ -897,14 +958,14 @@
       <div class="fr-close" id="frClose">Close</div>
     </div>
 
-    <!-- Profit Toggle -->
-    <button class="profit-toggle" id="profitToggle">
-      <svg viewBox="0 0 24 24"><path d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6z"/></svg>
-      Profit Calculator
-    </button>
+        <button class="tool-dropdown-toggle profit-toggle" id="profitToggle" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="profitPanel">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6z"/></svg>
+          <span class="tool-dropdown-label">Profit Calculator</span>
+          <svg class="dropdown-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
 
     <!-- Profit Panel -->
-    <div class="profit-panel" id="profitPanel">
+    <div class="profit-panel" id="profitPanel" role="region" aria-labelledby="profitToggle">
       <div class="pr-title">
         <svg viewBox="0 0 24 24"><path d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6z"/></svg>
         Profit Calculator
@@ -947,6 +1008,8 @@
       <button class="pr-btn" id="prCalcBtn" disabled>Enter all values</button>
       <div class="pr-close" id="prClose">Close</div>
     </div>
+      </div><!-- /tools-menu -->
+    </div><!-- /tools-dropdown -->
 
     <div class="result-wrap" id="resulttap" role="button" tabindex="0" title="Tap to copy · Hold to screenshot (profit excluded)" aria-haspopup="dialog" aria-controls="screenshotDialog" aria-describedby="screenshotHint">
       <div class="result-label" id="resultlabel">Receive</div>
@@ -1286,6 +1349,10 @@ amountCalcPanel.addEventListener("keydown", event => {
     amountCalcToggle.focus();
   }
 });
+
+// Tools dropdown elements (category holding both tools below)
+const toolsToggle = document.getElementById("toolsToggle");
+const toolsMenu = document.getElementById("toolsMenu");
 
 // Find Rate elements
 const findRateToggle = document.getElementById("findRateToggle");
@@ -1853,7 +1920,7 @@ function useFoundRate() {
     const decimals = currentCurrency === "usd" ? 4 : 2;
     rateEl.value = rate.toFixed(decimals);
     render();
-    findRatePanel.classList.remove("open");
+    closeToolsDropdown();
     toast("Rate applied");
     // NO localStorage - rate also clears on refresh
   }
@@ -1902,15 +1969,53 @@ function resetProfit() {
   prCalcBtn.disabled = true;
 }
 
-findRateToggle.addEventListener("click", () => {
-  findRatePanel.classList.toggle("open");
-  if (findRatePanel.classList.contains("open")) {
-    frPaid.focus();
+// ===== TOOLS DROPDOWN (Find Unit Price + Profit Calculator) =====
+// "Tools" is the single dropdown category; inside it, Find Unit Price and
+// Profit Calculator are expandable entries (only one tool open at a time).
+// Clicking outside closes everything, and Escape closes one layer at a time.
+function setToolDropdown(toggle, panel, open) {
+  panel.classList.toggle("open", open);
+  toggle.classList.toggle("open", open);
+  toggle.setAttribute("aria-expanded", open ? "true" : "false");
+}
+function closeToolDropdown(toggle, panel) {
+  setToolDropdown(toggle, panel, false);
+}
+function closeAllToolDropdowns() {
+  closeToolDropdown(findRateToggle, findRatePanel);
+  closeToolDropdown(profitToggle, profitPanel);
+}
+function setToolsDropdown(open) {
+  toolsMenu.classList.toggle("open", open);
+  toolsToggle.classList.toggle("open", open);
+  toolsToggle.setAttribute("aria-expanded", open ? "true" : "false");
+}
+function closeToolsDropdown() {
+  closeAllToolDropdowns();
+  setToolsDropdown(false);
+}
+function toggleToolDropdown(toggle, panel, firstInput) {
+  const willOpen = !panel.classList.contains("open");
+  closeAllToolDropdowns();
+  if (willOpen) {
+    setToolDropdown(toggle, panel, true);
+    if (firstInput) firstInput.focus();
   }
+}
+
+toolsToggle.addEventListener("click", () => {
+  const willOpen = !toolsMenu.classList.contains("open");
+  if (willOpen) setToolsDropdown(true);
+  else closeToolsDropdown();
+});
+
+findRateToggle.addEventListener("click", () => {
+  toggleToolDropdown(findRateToggle, findRatePanel, frPaid);
 });
 
 frClose.addEventListener("click", () => {
-  findRatePanel.classList.remove("open");
+  closeToolDropdown(findRateToggle, findRatePanel);
+  findRateToggle.focus();
 });
 
 frPaid.addEventListener("input", updateFindRate);
@@ -1919,14 +2024,31 @@ frCalcBtn.addEventListener("click", useFoundRate);
 frResult.addEventListener("click", useFoundRate);
 
 profitToggle.addEventListener("click", () => {
-  profitPanel.classList.toggle("open");
-  if (profitPanel.classList.contains("open")) {
-    prBuy.focus();
-  }
+  toggleToolDropdown(profitToggle, profitPanel, prBuy);
 });
 
 prClose.addEventListener("click", () => {
-  profitPanel.classList.remove("open");
+  closeToolDropdown(profitToggle, profitPanel);
+  profitToggle.focus();
+});
+
+document.addEventListener("click", (event) => {
+  const tools = document.getElementById("toolsDropdown");
+  if (tools && !tools.contains(event.target)) closeToolsDropdown();
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key !== "Escape") return;
+  // Close one layer at a time: an open tool first, then the Tools menu.
+  const openToggle = findRatePanel.classList.contains("open") ? findRateToggle
+    : profitPanel.classList.contains("open") ? profitToggle : null;
+  if (openToggle) {
+    closeToolDropdown(openToggle, openToggle === findRateToggle ? findRatePanel : profitPanel);
+    openToggle.focus();
+  } else if (toolsMenu.classList.contains("open")) {
+    setToolsDropdown(false);
+    toolsToggle.focus();
+  }
 });
 
 prBuy.addEventListener("input", calcProfit);

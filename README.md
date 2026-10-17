@@ -28,8 +28,9 @@ A sleek, dark-themed **P2P exchange calculator** for converting **US Dollar (USD
 | **🔄 Dual Currency** | One **Currency** dropdown on the left picks **USD** or **IQD** — no more juggling two tabs |
 | **🔀 Direction Toggle** | **Send → Receive** switcher sits on the right of the same row, independent of the currency |
 | **⚡ Real-time** | Result updates as you type — no submit button |
-| **🔍 Find Unit Price** | Reverse-calculate the unit rate from a past trade (amount paid ÷ USDT received), then tap to apply it |
-| **📈 Profit Calculator** | Separate panel for buy price, sell price, and USDT amount → cost, revenue, net profit, and profit % |
+| **🧰 Tools Dropdown** | One **Tools** dropdown category holds both tools below |
+| **🔍 Find Unit Price** | Inside **Tools**: reverse-calculate the unit rate from a past trade (amount paid ÷ USDT received), then tap to apply it |
+| **📈 Profit Calculator** | Inside **Tools**: buy price, sell price, and USDT amount → cost, revenue, net profit, and profit % |
 | **💹 Live Profit Row** | Side panel shows amount → converted value → profit for the current inputs, with a **%** tool for a cut of that profit |
 | **🎯 Quick Chips** | Tap 500 / 1K / 1.5K / 2K (USD) or 500K / 1M / 1.5M / 2M (IQD); Receive mode uses 50 / 100 / 200 / 500 USDT |
 | **➕ Quick Amount Math** | Use the calculator icon beside Amount to add, subtract, multiply, or divide before copying or applying a new total |
@@ -51,9 +52,11 @@ The header row is a single line: the **Currency** dropdown on the left (USD or I
 
 ### Find Unit Price
 
+**Find Unit Price** and **Profit Calculator** live together in one **Tools** dropdown under the header row. Inside Tools, only one tool stays open at a time — opening one closes the other. Clicking outside closes everything, and pressing **Escape** closes one layer at a time (the open tool first, then Tools).
+
 Work backwards from a completed trade when you only know what you paid and how much USDT you got:
 
-1. Tap **Find Unit Price**.
+1. Tap the **Tools** dropdown, then **Find Unit Price**.
 2. Enter **Amount Paid** (in the active currency) and **USDT Received**.
 3. The panel shows `paid ÷ received` as the unit price, with the formula underneath.
 4. Tap the result (or **Use this rate**) to drop it into the main Unit price field and close the panel.
@@ -64,9 +67,9 @@ Labels follow the active currency (USD or IQD). Nothing is stored — close the 
 
 ### Profit Calculator
 
-A dedicated panel for buy/sell spreads, separate from the main conversion:
+A dedicated panel for buy/sell spreads inside the **Tools** dropdown, separate from the main conversion:
 
-1. Tap **Profit Calculator**.
+1. Tap the **Tools** dropdown, then **Profit Calculator**.
 2. Enter **Buy Price**, **Sell Price** (both in currency/USDT), and **Amount (USDT)**.
 3. Instantly see **Cost**, **Revenue**, **Net Profit**, and **Profit %** — green for gains, red for losses.
 4. Tap **Reset** to clear the fields, or **Close** to hide the panel.
@@ -207,8 +210,7 @@ Upload `index.html` together with `manifest.webmanifest` and the icon files — 
 │  CURRENCY · US Dollar     │
 │  [USD ▾]  [Send→Receive]  │
 │                           │
-│  [ Find Unit Price ]      │
-│  [ Profit Calculator ]    │
+│  [ Tools ▾ ]              │
 │                           │
 │       Receive             │
 │     500.00 USDT           │
@@ -237,8 +239,7 @@ Upload `index.html` together with `manifest.webmanifest` and the icon files — 
         │   CURRENCY · US Dollar                 │
         │   [ USD   ▾ ]   [ Send → Receive ]     │
         │                                        │
-        │   [ Find Unit Price ]                  │
-        │   [ Profit Calculator ]                │
+        │   [ Tools ▾ ]                          │
         │                                        │
         │          Receive                       │
         │        500.00 USDT                     │

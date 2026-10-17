@@ -236,6 +236,7 @@ test('the exported PNG draws the same capped formula as the screen', async t => 
 
 test('the Find Unit Price formula is capped at five digits too', async t => {
   const page = await calculator(t);
+  await page.click('#toolsToggle');
   await page.click('#findRateToggle');
   await page.fill('#frPaid', '1000');
   await page.fill('#frReceived', '980');
@@ -249,6 +250,83 @@ test('the Find Unit Price formula is capped at five digits too', async t => {
   await page.fill('#frPaid', '1500000');
   await page.fill('#frReceived', '990');
   assert.equal(await page.locator('#frResFormula').textContent(), '1,500,000 IQD \u00f7 990 USDT');
+});
+
+test('Find Unit Price and Profit Calculator live inside one "Tools" dropdown', async t => {
+  const page = await calculator(t);
+  assert.equal((await page.locator('#toolsToggle').textContent()).trim().replace(/\s+/g, ' '), 'Tools', 'the dropdown is named Tools');
+  assert.equal(await page.locator('#toolsToggle').getAttribute('aria-haspopup'), 'true');
+  assert.equal(await page.locator('#toolsToggle').getAttribute('aria-expanded'), 'false', 'Tools starts closed');
+  assert.equal(await page.locator('#toolsToggle').getAttribute('aria-controls'), 'toolsMenu');
+  assert.equal(await page.locator('#toolsToggle .dropdown-chevron').count(), 1, 'Tools shows a dropdown chevron');
+  assert.equal(await page.locator('#toolsMenu').isVisible(), false, 'the Tools menu starts hidden');
+  assert.equal(await page.locator('#findRateToggle').isVisible(), false, 'the tools are hidden until Tools opens');
+
+  for (const [toggle, panel] of [['#findRateToggle', '#findRatePanel'], ['#profitToggle', '#profitPanel']]) {
+    assert.equal(await page.locator(toggle).evaluate((el, menuId) => !!el.closest('#' + menuId), 'toolsMenu'), true, `${toggle} is inside the Tools category`);
+    assert.equal(await page.locator(toggle).getAttribute('aria-expanded'), 'false', `${toggle} starts closed`);
+    assert.equal(await page.locator(toggle).getAttribute('aria-controls'), panel.slice(1));
+    assert.equal(await page.locator(panel).isVisible(), false, `${panel} starts hidden`);
+  }
+
+  await page.click('#toolsToggle');
+  assert.equal(await page.locator('#toolsMenu').isVisible(), true, 'Tools opens its menu');
+  assert.equal(await page.locator('#toolsToggle').getAttribute('aria-expanded'), 'true');
+  assert.equal(await page.locator('#findRateToggle').isVisible(), true);
+  assert.equal(await page.locator('#profitToggle').isVisible(), true);
+  assert.deepEqual(await page.locator('#toolsMenu .tool-dropdown-toggle').allTextContents().then(texts => texts.map(x => x.trim())), ['Find Unit Price', 'Profit Calculator'], 'Tools contains exactly the two tools, in order');
+});
+
+test('inside Tools, the tools open one at a time and close on outside click and Escape', async t => {
+  const page = await calculator(t);
+  await page.click('#toolsToggle');
+  await page.click('#findRateToggle');
+  assert.equal(await page.locator('#findRatePanel').isVisible(), true);
+  assert.equal(await page.locator('#findRateToggle').getAttribute('aria-expanded'), 'true');
+
+  await page.click('#profitToggle');
+  assert.equal(await page.locator('#findRatePanel').isVisible(), false, 'opening Profit Calculator closes Find Unit Price');
+  assert.equal(await page.locator('#findRateToggle').getAttribute('aria-expanded'), 'false');
+  assert.equal(await page.locator('#profitPanel').isVisible(), true);
+  assert.equal(await page.locator('#profitToggle').getAttribute('aria-expanded'), 'true');
+  assert.equal(await page.locator('#toolsMenu').isVisible(), true, 'Tools stays open while switching tools');
+
+  // Escape closes one layer at a time: the tool first, then the Tools menu.
+  await page.keyboard.press('Escape');
+  assert.equal(await page.locator('#profitPanel').isVisible(), false, 'Escape closes the open tool first');
+  assert.equal(await page.locator('#toolsMenu').isVisible(), true, 'Tools is still open after the first Escape');
+  assert.equal(await page.evaluate(() => document.activeElement.id), 'profitToggle');
+  await page.keyboard.press('Escape');
+  assert.equal(await page.locator('#toolsMenu').isVisible(), false, 'a second Escape closes Tools');
+  assert.equal(await page.locator('#toolsToggle').getAttribute('aria-expanded'), 'false');
+  assert.equal(await page.evaluate(() => document.activeElement.id), 'toolsToggle', 'Escape returns focus to Tools');
+
+  await page.click('#toolsToggle');
+  await page.click('#findRateToggle');
+  assert.equal(await page.locator('#findRatePanel').isVisible(), true);
+  await page.click('#resulttap');
+  assert.equal(await page.locator('#findRatePanel').isVisible(), false, 'clicking outside closes the open tool');
+  assert.equal(await page.locator('#toolsMenu').isVisible(), false, 'clicking outside closes Tools too');
+  assert.equal(await page.locator('#toolsToggle').getAttribute('aria-expanded'), 'false');
+
+  await page.click('#toolsToggle');
+  assert.equal(await page.locator('#toolsMenu').isVisible(), true);
+  await page.click('#toolsToggle');
+  assert.equal(await page.locator('#toolsMenu').isVisible(), false, 'clicking Tools again closes it');
+});
+
+test('the Tools dropdown still fits a 320px phone', async t => {
+  const page = await calculator(t, { viewport: { width: 320, height: 720 } });
+  const frame = await page.locator('.app-frame').boundingBox();
+  const toggle = await page.locator('#toolsToggle').boundingBox();
+  assert.ok(toggle.x + toggle.width <= frame.x + frame.width + 1, 'Tools stays inside the screen');
+  assert.equal(await page.locator('#toolsToggle').isVisible(), true);
+  await page.click('#toolsToggle');
+  for (const item of ['#findRateToggle', '#profitToggle']) {
+    const box = await page.locator(item).boundingBox();
+    assert.ok(box.x + box.width <= frame.x + frame.width + 1, `${item} stays inside the screen`);
+    assert.equal(await page.locator(item).isVisible(), true);
+  }
 });
 
 // ===== USDT (Tether) LOGO =====
@@ -387,6 +465,7 @@ test('all profit panels are excluded, remain unchanged, and export works offline
   await openScreenshot(page);
   const baseline = await pngBytes(page);
   await page.click('#screenshotClose');
+  await page.click('#toolsToggle');
   await page.click('#profitToggle');
   await page.fill('#prBuy', '0.8');
   await page.fill('#prSell', '1.4');
