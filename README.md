@@ -30,6 +30,7 @@ A sleek, dark-themed **P2P exchange calculator** for converting **US Dollar (USD
 | **⚡ Real-time** | Result updates as you type — no submit button |
 | **🧰 Tools Dropdown** | One **Tools** dropdown category holds both tools below |
 | **🔍 Find Unit Price** | Inside **Tools**: reverse-calculate the unit rate from a past trade (amount paid ÷ USDT received), then tap to apply it |
+| **💱 Exchange Rate** | Inside **Tools**: enter a custom IQD per USD and save it as the current rate |
 | **📈 Profit Calculator** | Inside **Tools**: buy price, sell price, and USDT amount → cost, revenue, net profit, and profit % |
 | **💹 Live Profit Row** | Side panel shows amount → converted value → profit for the current inputs, with a **%** tool for a cut of that profit |
 | **🎯 Quick Chips** | Tap 500 / 1K / 1.5K / 2K (USD) or 500K / 1M / 1.5M / 2M (IQD); Receive mode uses 50 / 100 / 200 / 500 USDT |
@@ -46,7 +47,10 @@ A sleek, dark-themed **P2P exchange calculator** for converting **US Dollar (USD
 
 The header row is a single line: the **Currency** dropdown on the left (USD or IQD) and the **Send → Receive** switcher on the right.
 
-* Picking a currency resets the unit price to that currency's default (USD **1**, IQD **14**), clears the amount, and reloads the quick chips, labels, and profit row.
+* Picking a currency resets the unit price to that currency's default (USD **1**, IQD **14**), converts the Send amount at the built-in rate **`IQD_PER_USD`** (currently **1,520 IQD = 1 USD**, the official end-user rate from 7 Oct 2026 — edit the constant in `index.html` when the rate changes), and reloads the quick chips, labels, and profit row.
+  * Example: **1,520,000 IQD** → switch to USD → **1,000.00 USD**; **1,000 USD** → switch to IQD → **1,520,000 IQD**.
+  * In Receive mode the amount is USDT, so it is cleared as before.
+  * Change the rate in **Tools → Exchange Rate**: type your IQD per USD and tap **Save as current rate** (or press Enter). It becomes the rate used for switching currency until you reload the page.
 * Changing the direction keeps the chosen currency — you can flip between Send and Receive without losing it.
 * USD and IQD share the same layout: only labels, chips, and rounding change.
 
